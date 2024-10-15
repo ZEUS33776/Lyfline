@@ -168,7 +168,7 @@ We welcome contributions from the community! Please follow these steps to contri
 ## 📧 Contact
 
 For questions or support, please reach out to:  
-**Email**: [ydesh.arjun3@gmail.com](mailto:desh.arjun3@gmail.com)  
+**Email**: [desh.arjun3@gmail.com](mailto:desh.arjun3@gmail.com)  
 **GitHub**: [ZEUS33776](https://github.com/ZEUS33776)
 
 ---
