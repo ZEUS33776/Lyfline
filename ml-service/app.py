@@ -113,4 +113,7 @@ def predict_chd():
         }), 500
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    # Get port from environment variable or default to 5001
+    port = int(os.environ.get('PORT', 5001))
+    # Important: bind to 0.0.0.0 to make the app accessible outside the container
+    app.run(host='0.0.0.0', port=port)
