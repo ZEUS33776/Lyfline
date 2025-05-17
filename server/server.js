@@ -1,4 +1,4 @@
-import express from "express";
+import express, { query, response } from "express";
 import cors from "cors";
 import pkg from 'pg';
 import dotenv from 'dotenv';
@@ -6,50 +6,17 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import config from './config/config.js';
 
-// Load environment variables first
-dotenv.config();
-
 const app = express();
-const port = config.port || 3000;
+const port = config.port;
 
-// Apply middleware
-app.use(cors());
-app.use(express.json());
-
+dotenv.config();
 const { Pool } = pkg;
 const pool = new Pool({
   user: process.env.DB_USER,
-  // Force IPv4 by explicitly adding the protocol if not present
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  // Force IPv4
-  family: 4,
-  // Add SSL options for Render
-  ssl: {
-    rejectUnauthorized: false // Required for Render's PostgreSQL
-  }
-});
-
-// Test database connection
-pool.connect()
-  .then(() => console.log('Database connection successful'))
-  .catch(err => {
-    console.error('Database connection error:', err);
-    // Log more details about the connection attempt
-    console.log('Connection details:', {
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      // Don't log password for security
-    });
-  });
-
-// Basic health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).send('Server is running');
+  port: process.env.DB_PORT
 });
 
 // Middleware
