@@ -20,12 +20,10 @@ const { Pool } = pkg;
 const pool = new Pool({
   user: process.env.DB_USER,
   // Force IPv4 by explicitly adding the protocol if not present
-  host: process.env.DB_HOST?.includes("://") 
-    ? process.env.DB_HOST 
-    : `postgres://${process.env.DB_HOST}`,
+  host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 5432,
+  port: process.env.DB_PORT,
   // Force IPv4
   family: 4,
   // Add SSL options for Render
