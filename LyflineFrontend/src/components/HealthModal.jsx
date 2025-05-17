@@ -121,16 +121,18 @@ const handleSubmit = async (e) => {
   
   try {
     console.log('Form submitted:', formData);
-    setIsOpen(false);
+    toast.success("Successfully submitted!")
+    setTimeout(() => {
+      setIsOpen(false)
+    },1000)
+    
     
     // Wait for both operations to complete
     await handleAddPatient();
     await handlePreModel();
     // window.location.reload()
     
-    setTimeout(() => {
-      window.location.reload();
-  }, 10000);
+
     
   } catch (error) {
     console.error("Error in form submission:", error);
@@ -294,7 +296,7 @@ const handleSubmit = async (e) => {
                 <input
                   type="number"
                   name="BMI"
-                  value={formData.BMI}
+                  value={parseFloat(BMI.toFixed(2))}
                    
                   onChange={handleChange}
                   className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -313,6 +315,13 @@ const handleSubmit = async (e) => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label className="text-sm font-medium text-gray-700">Male</label>
+                <input
+                  type="checkbox"
+                  name="female"
+                  
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label className="text-sm font-medium text-gray-700">Female</label>
               </div>
 
               <div className="flex items-center space-x-3">

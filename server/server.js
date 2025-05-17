@@ -4,18 +4,19 @@ import pkg from 'pg';
 import dotenv from 'dotenv';
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import config from './config/config.js';
 
 const app = express();
-const port = 3000;
+const port = config.port;
 
 dotenv.config();
 const { Pool } = pkg;
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  user: config.db.user,
+  host: config.db.host,
+  database: config.db.database,
+  password: config.db.password,
+  port: config.db.port,
 });
 
 // Middleware
@@ -552,7 +553,8 @@ app.get("/get-name/:user_id", async (req, res) => {
 });
 app.post("/predict/heart", async (req, res) => {
   try {
-    const response = await axios.post('http://localhost:5001/predict/heart', req.body);
+    const mlEndpoint = `${config.mlService.url}${config.mlService.endpoints.predictHeart}`;
+    const response = await axios.post(mlEndpoint, req.body);
     res.json(response.data);
   } catch (error) {
     console.error('Prediction error:', error);
@@ -564,7 +566,8 @@ app.post("/predict/heart", async (req, res) => {
 });
 app.post("/predict/chd", async (req, res) => {
   try {
-    const response = await axios.post('http://localhost:5001/predict/chd', req.body);
+    const mlEndpoint = `${config.mlService.url}${config.mlService.endpoints.predictCHD}`;
+    const response = await axios.post(mlEndpoint, req.body);
     res.json(response.data);
   } catch (error) {
     console.error('Prediction error:', error);

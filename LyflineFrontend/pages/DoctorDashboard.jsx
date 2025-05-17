@@ -4,8 +4,8 @@ import { Search, Plus, FileText, X, Heart, Activity, Calendar, AlertCircle } fro
 import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
-import HealthFormModal from "../src/components/HealthModal"
-import toast from 'react-hot-toast';
+
+import toast, { Toaster } from 'react-hot-toast';
 import {jwtDecode} from 'jwt-decode';
 const DoctorDashboard = () => {
     const [name,setName]=useState("") 
@@ -33,7 +33,9 @@ const DoctorDashboard = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [patients,setPatients]=useState([])
   const handleSignOut = () => {
-    localStorage.removeItem('token')
+
+    localStorage.clear()
+     
     navigate("/signin")
   }
   if (id.id !== localStorage.getItem('hospitalId')) {
@@ -46,6 +48,8 @@ const DoctorDashboard = () => {
       const response = await axios.get("http://localhost:3000/get-patients-for-doctor");
       console.log(response.data.patients);
       setPatients(response.data.patients);
+      // toast.success("Patients fetched successfully!")
+      
     } catch (error) {
       console.error("Error fetching patients:", error);
     }
@@ -69,8 +73,12 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-            const response = await axios.put("http://localhost:3000/attend", { patient_id,user_id });
+          const response = await axios.put("http://localhost:3000/attend", { patient_id, user_id });
+          toast.success("Patient is being attended!")
+          setTimeout(() => {
             window.location.reload()
+          },1000)
+           
       
           console.log(response.data); // Optional: log the response data
         } catch (error) {
@@ -82,8 +90,12 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-            const response = await axios.put("http://localhost:3000/stable", { patient_id,user_id });
+          const response = await axios.put("http://localhost:3000/stable", { patient_id, user_id });
+          toast.success("Patient is being marked stable successfully!")
+          setTimeout(() => {
             window.location.reload()
+          },1000)
+            
       
           console.log(response.data); // Optional: log the response data
         } catch (error) {
@@ -95,8 +107,12 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-            const response = await axios.put("http://localhost:3000/critical", { patient_id,user_id });
+          const response = await axios.put("http://localhost:3000/critical", { patient_id, user_id });
+          toast.success("Patient is marked critical!")
+          setTimeout(() => {
             window.location.reload()
+          },1000)
+            
       
           console.log(response.data); // Optional: log the response data
         } catch (error) {
@@ -145,27 +161,22 @@ const DoctorDashboard = () => {
       return false;
     }
   };
-  // useEffect(() => {
-  //   const init = async () => {
-  //     if (checkAuth() && checkHospitalAccess()) {
-  //       await getPatients();
-  //     }
-      
-      
-  //   };
-  //   init();
-  // }, [id]);
   
   useEffect(() => {
 
     
     const fetchData = async () => {
+      if (!localStorage.getItem('token')) {
+        localStorage.clear()
+        navigate('/signin')
+      }
       if (id.id == localStorage.getItem('hospitalId')) {
         await getPatients();
       }
       else {
         localStorage.removeItem('token')
         localStorage.removeItem('hospitalId')
+        localStorage.clear()
         navigate('/signin')
       }
       
@@ -365,8 +376,6 @@ console.log(patients)
                 </div>
               </div>
             </div>
-
-            {/* Laboratory Results */}
             <div className="bg-gray-50 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-4">Laboratory Results</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -392,9 +401,6 @@ console.log(patients)
       </div>
     );
   };
-    
-    
-    
   const ProfileModal = ({ patient, onClose }) => {
     if (!patient) return null;
     
@@ -502,15 +508,10 @@ console.log(patients)
         </div>
       </div>
     );
-    };
-    
-
-
-
-
-
+  };
   return (
     <div>
+      <Toaster />
       <Navbar handleSignOut={handleSignOut} />
       <div className="w-full max-w-screen mx-auto p-8">
         <div className="mb-6">
@@ -531,16 +532,8 @@ console.log(patients)
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <select
-              className="border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
-            >
-              <option value="All">All Patients</option>
-              <option value="Critical">Critical</option>
-              <option value="Heart">Heart Patients</option>
-              <option value="Diabetes">Diabetic Patients</option>
-            </select>
+           
+              
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -658,11 +651,8 @@ console.log(patients)
                                     Mark Critical
                                             </button></div> : ""
                                     }
-                                        </div>
-
-                                }
-                            
-                         
+                              </div>
+                          }
                         </td>
                       </tr>
                     );

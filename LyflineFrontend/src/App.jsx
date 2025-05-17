@@ -2,10 +2,9 @@ import { useState } from 'react';
 // src/index.js or src/App.js
 
 import Features from './Features';
- import Banner from './components/Banner';
- import Proceed from './components/Proceed';
+import Banner from './components/Banner';
+import Proceed from './components/Proceed';
 import './App.css'
-import axios from 'axios'
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import About from './components/About';
@@ -18,6 +17,7 @@ import UserManagementDashboard from "../pages/AdminDashboard"
 import ReceptionistDashboard from "../pages/ReceptionistDashboard"
 import PathologistDashboard from '../pages/PathologistDashboard';
 import DoctorDashboard from '../pages/DoctorDashboard';
+import config from './config';
 
 function App() {
  

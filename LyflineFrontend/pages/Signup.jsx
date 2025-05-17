@@ -163,7 +163,10 @@ const RegisterHospital = () => {
       const hospitalId = await registerHospitalAndAdmin();
 
       // Success handling
-      toast.dismiss(loadingToast);
+      setTimeout(() => {
+        toast.dismiss(loadingToast);
+      },1000)
+      
       toast.success('Registration successful! Redirecting...');
 
       // Navigate after a short delay
@@ -304,19 +307,36 @@ const RegisterHospital = () => {
             </div>
 
             {/* Terms and Conditions */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                name="acceptTerms"
-                checked={formData.acceptTerms}
-                onChange={handleChange}
-                className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500"
-                required
-              />
-              <label className="text-sm font-medium text-gray-700">
-                I accept the terms and conditions
-              </label>
-            </div>
+            <div className="max-w-2xl mx-auto p-4">
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          name="acceptTerms"
+          checked={formData.acceptTerms}
+          onChange={handleChange}
+          className="h-4 w-4 text-red-600 border-gray-300 rounded focus:ring-2 focus:ring-red-500"
+          required
+        />
+        <label className="text-sm font-medium text-gray-700">
+          I accept the terms and conditions
+        </label>
+      </div>
+      
+      <div className="mt-2 text-xs text-gray-400 pl-6">
+        <p>By checking this box, you agree to:</p>
+        <ul className="list-disc pl-5 space-y-1 mt-1">
+          <li>Provide accurate and current information</li>
+          <li>Maintain the security of your account</li>
+          <li>Comply with all applicable laws and regulations</li>
+          <li>Not engage in any unauthorized activities</li>
+          <li>Accept our privacy policy and data processing terms</li>
+        </ul>
+        
+        <p className="mt-2 text-gray-400">
+          For complete details, please review our full Terms of Service and Privacy Policy.
+        </p>
+      </div>
+    </div>
             {errors.acceptTerms && <ErrorMessage message={errors.acceptTerms} />}
 
             {/* Submit Button */}

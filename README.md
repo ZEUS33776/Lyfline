@@ -1,7 +1,3 @@
-
-
----
-
 # Lyfline 🫀  
 **Lyfline** is an advanced heart condition prediction system that leverages machine learning to provide **predictive health insights**. It helps healthcare professionals assess **future risks for new patients** and monitor **currently admitted heart patients** to predict the likelihood of a heart attack based on routine health data.
 
@@ -134,9 +130,55 @@ To train the models, follow these steps:
 
 ---
 
+## 🚀 Configuration Instructions
+
+The application now uses a configuration system to manage server URLs and endpoints:
+
+### Backend Configuration
+The server uses a configuration file located at `server/config/config.js` that loads environment variables from `.env`:
+
+```js
+# Server Configuration
+PORT=3000
+
+# Database Configuration
+DB_USER=postgres
+DB_HOST=localhost
+DB_NAME=lyfline
+DB_PASSWORD=your_password
+DB_PORT=5432
+
+# JWT Secret
+JWT_SECRET=your_jwt_secret_key
+
+# ML Service
+ML_SERVICE_URL=http://localhost:5001
+```
+
+### Frontend Configuration
+Frontend configuration is managed in `src/config.js` and uses environment variables with fallbacks:
+
+```js
+// API server URLs
+API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+```
+
+Create a `.env.local` file in the frontend directory with:
+```
+VITE_API_BASE_URL=http://localhost:3000
+```
+
+### Automated Setup Scripts
+For convenience, the project includes automated setup scripts:
+
+- **Linux/Mac**: Use `deploy.sh` to set up the environment
+- **Windows**: Use `deploy.bat` to set up the environment
+
+These scripts will create configuration files, install dependencies, and offer to start the services.
+
+---
 
 ## 🛡️ Security and Privacy
-
 
 - **Access Control**: Only authorized hospital staff can access patient data.  
 - **GDPR Compliance**: The system ensures the privacy and security of all personal data.
@@ -163,8 +205,6 @@ We welcome contributions from the community! Please follow these steps to contri
 
 ---
 
-
-
 ## 📧 Contact
 
 For questions or support, please reach out to:  
@@ -173,4 +213,4 @@ For questions or support, please reach out to:
 
 ---
 
-This README provides an in-depth overview of your **Lyfline** project and serves as a comprehensive guide for users and contributors. Let me know if you’d like to add or modify anything!
+This README provides an in-depth overview of your **Lyfline** project and serves as a comprehensive guide for users and contributors. Let me know if you'd like to add or modify anything!

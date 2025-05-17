@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Heart, Activity, X } from 'lucide-react';
-import axios, { formToJSON } from 'axios';
+import axios from 'axios';
+import toast, { Toaster } from 'react-hot-toast';
 
-const PathologyReportForm = ({ onClose, onSubmit,age,sex, pid, fname, lname }) => {
-
+const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname }) => {
   const [formData, setFormData] = useState({
     patient_id: pid,
     pathologist_id: parseInt(localStorage.getItem('user_id')),
@@ -12,24 +12,23 @@ const PathologyReportForm = ({ onClose, onSubmit,age,sex, pid, fname, lname }) =
     resting_blood_pressure: '',
     heart_rate: '',
     bmi: '',
-    chest_pain_type: '0',  // Initialize with string '0' instead of null
-    resting_ecg_result: '0',  // Initialize with string '0' instead of null
+    chest_pain_type: '0',
+    resting_ecg_result: '0',
     max_heart_rate: '',
     exercise_induced_angina: false,
     glucose: 0.0,
     oldpeak: '',
     major_vessels: '',
-    thal: '0',  // Initialize with string '0' instead of null
+    thal: '0',
     fasting_blood_sugar: false,
     slope: '',
-    serum_cholestoral: '',  // Changed from null to empty string
+    serum_cholestoral: '',
     is_critical: false
   });
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    // Handle different input types appropriately
     const newValue = type === 'checkbox' 
       ? checked 
       : type === 'number' 
@@ -41,14 +40,12 @@ const PathologyReportForm = ({ onClose, onSubmit,age,sex, pid, fname, lname }) =
       [name]: newValue
     }));
     
-    // Debug log
     console.log(`Field ${name} updated to:`, newValue);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form submission
+    e.preventDefault();
     
-    // Convert empty string values to null for API submission
     const submitData = Object.fromEntries(
       Object.entries(formData).map(([key, value]) => [
         key,
@@ -59,11 +56,11 @@ const PathologyReportForm = ({ onClose, onSubmit,age,sex, pid, fname, lname }) =
     console.log('Submitting data:', submitData);
     
     try {
-      
-      const res = await axios.post("http://localhost:3000/predict/heart", {
+      // First, get the prediction
+      const predictionRes = await axios.post("http://localhost:3000/predict/heart", {
         "age": age,
-        "sex":sex,
-        "cp":formData.chest_pain_type,
+        "sex": sex,
+        "cp": formData.chest_pain_type,
         "trtbps": formData.resting_blood_pressure,
         "chol": formData.serum_cholestoral,
         "fbs": formData.fasting_blood_sugar,
@@ -73,26 +70,39 @@ const PathologyReportForm = ({ onClose, onSubmit,age,sex, pid, fname, lname }) =
         "oldpeak": formData.oldpeak,
         "slp": formData.slope,
         "caa": formData.chest_pain_type,
-        "thall":formData.thal
+        "thall": formData.thal
+      });
+
+      // Update is_critical based on prediction
+      if (predictionRes.data.prediction === 1) {
+        // Update local state
+        submitData.is_critical = true;
         
-      })
-      if (res.data.prediction === 1) {
-        const res=await axios.put("http://localhost:3000/critical",{"patient_id":pid})
+        // Update critical status in backend
+        await axios.put("http://localhost:3000/critical", { "patient_id": pid });
+        
+        toast.error("Patient is critical. Please consult a Specialist.");
       }
+
+      // Submit the report with updated is_critical status
       const response = await axios.post("http://localhost:3000/add-pathology-report", submitData);
       console.log("Report submitted successfully:", response.data);
       onSubmit?.(submitData);
       onClose();
-      window.location.reload()
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
       
     } catch (error) {
-      console.error("Error submitting the report:", error);
-      alert("Failed to submit report. Please try again.");
+      console.log("Error submitting the report:", error);
+      toast.error("Failed to submit report. Please try again.");
     }
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <Toaster />
       <form onSubmit={handleSubmit} className="bg-white rounded-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="p-6 flex justify-between items-start border-b">

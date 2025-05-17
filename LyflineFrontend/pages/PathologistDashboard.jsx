@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import HealthFormModal from "../src/components/HealthModal"
-import toast from 'react-hot-toast';
+import {toast,Toaster} from 'react-hot-toast';
 import { jwtDecode } from 'jwt-decode';
 import PathologyReportForm from '../src/components/PathologyModal';
 const ReceptionistDashboard = () => {
@@ -268,6 +268,7 @@ console.log(patients)
                   <Calendar className="w-4 h-4 mr-2" />
                   <span>{report.report_date}</span>
                 </div>
+                {console.log(report)}
                 {report.is_critical && (
                   <span className="inline-flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-sm font-medium">
                     <AlertCircle className="w-4 h-4 mr-1" />
@@ -505,6 +506,7 @@ console.log(patients)
     <div>
       <Navbar handleSignOut={handleSignOut} />
       <div className="w-full max-w-screen mx-auto p-8">
+        <Toaster />
         <div className="mb-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">Welcome {name}!</h1>

@@ -87,20 +87,26 @@
 
 
 
-curl -X POST -H "Content-Type: application/json" -d '{
-   "male": 0,
-    "age": 61,
-    "education": 3,
-    "currentSmoker": 1,
-    "cigsPerDay": 30,
-    "BPMeds": 0,
-    "prevalentStroke": 0,
-    "prevalentHyp": 1,
-    "diabetes": 0,
-    "totChol": 225,
-    "sysBP": 150,
-    "diaBP": 95,
-    "BMI": 28.58,
-    "heartRate": 65,
-    "glucose": 103
- }' http://localhost:5001/predict/chd
+# curl -X POST -H "Content-Type: application/json" -d '{
+#    "male": 0,
+#     "age": 61,
+#     "education": 3,
+#     "currentSmoker": 1,
+#     "cigsPerDay": 30,
+#     "BPMeds": 0,
+#     "prevalentStroke": 0,
+#     "prevalentHyp": 1,
+#     "diabetes": 0,
+#     "totChol": 225,
+#     "sysBP": 150,
+#     "diaBP": 95,
+#     "BMI": 28.58,
+#     "heartRate": 65,
+#     "glucose": 103
+#  }' http://localhost:5001/predict/chd
+PUT http://localhost:3000/critical
+Content-Type: application/json
+
+{
+    "patient_id":55
+}

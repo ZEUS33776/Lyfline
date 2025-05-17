@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
-import axios from "axios";
 import { useNavigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-
-// Add keyframes for blob animation
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes blob {
-    0% { transform: translate(0px, 0px) scale(1); }
-    33% { transform: translate(30px, -50px) scale(1.1); }
-    66% { transform: translate(-20px, 20px) scale(0.9); }
-    100% { transform: translate(0px, 0px) scale(1); }
-  }
-`;
-document.head.appendChild(style);
+import { Toaster, toast } from 'react-hot-toast';
+import api from '../utils/api';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -26,7 +14,7 @@ const Auth = () => {
 
   const handleAuth = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/auth', {
+      const response = await api.login({
         email,
         password,
         role
@@ -34,8 +22,10 @@ const Auth = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('hospitalId', response.data.hospitalId);
       localStorage.setItem('user_id', response.data.user_id);
+      toast.success('Login successful!');
       return response.data.hospitalId;
     } catch (error) {
+      toast.error('Authentication failed. Please check your credentials.');
       console.error('Authentication failed', error);
       throw error;
     }
@@ -57,11 +47,14 @@ const Auth = () => {
 
       if (decodedToken.exp < currentTime) {
         localStorage.removeItem('token');
+        toast.error('Session expired. Please log in again.');
         throw new Error('Session expired');
       }
+      toast.success("Credentials verified!")
 
-      navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`);
+      setTimeout(() => { navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`)},1000);
     } catch (error) {
+      toast.error('An error occurred. Please try again.');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -72,7 +65,7 @@ const Auth = () => {
 
   return (
     <>
-      <Toaster position="top-right" />
+      <Toaster position="top-center" />
       <div className="min-h-screen relative bg-gradient-to-br from-red-50 via-white to-blue-50">
         {/* Animated background blobs */}
         <div className="absolute inset-0 z-0 opacity-40 overflow-hidden">
