@@ -12,11 +12,12 @@ const port = config.port;
 dotenv.config();
 const { Pool } = pkg;
 const pool = new Pool({
-  user: config.db.user,
-  host: config.db.host,
-  database: config.db.database,
-  password: config.db.password,
-  port: config.db.port,
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+  family: 4
 });
 
 // Middleware
