@@ -36,10 +36,8 @@ const DoctorDashboard = () => {
      
     navigate("/signin")
   }
-  if (id.id !== localStorage.getItem('hospitalId')) {
-    localStorage.removeItem('token')
-    localStorage.removeItem('hospitalId')
- }
+  // Hospital ID validation will be handled in useEffect instead of on render
+// This prevents automatic logout on component mount
   // Mock data updated to match schema
   const getPatients = async () => {
     try {
@@ -159,24 +157,33 @@ const DoctorDashboard = () => {
   
   useEffect(() => {
     const fetchData = async () => {
-      if (!localStorage.getItem('token')) {
-        localStorage.clear()
-        navigate('/signin')
-      }
-      if (id.id == localStorage.getItem('hospitalId')) {
-        await getPatients();
-      }
-      else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('hospitalId')
-        localStorage.clear()
-        navigate('/signin')
+      try {
+        // First verify we have a valid token
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/signin');
+          return;
+        }
+        
+        // Check if the hospital ID in the URL matches the one in localStorage
+        const storedHospitalId = localStorage.getItem('hospitalId');
+        if (id.id == storedHospitalId) {
+          await getPatients();
+        } else {
+          // If the hospital IDs don't match, only redirect without clearing localStorage
+          // This prevents losing the token on refreshes
+          navigate('/signin');
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error loading dashboard");
       }
     };
     
     // Custom event handler for refreshing data without page reload
-    const handleRefreshData = () => {
-      fetchData();
+    const handleRefreshData = (event) => {
+      // Only refresh data, no need to validate token again for this specific action
+      getPatients();
     };
     
     // Add event listeners for all our custom events
@@ -190,7 +197,7 @@ const DoctorDashboard = () => {
       window.removeEventListener('patientStatusUpdated', handleRefreshData);
       window.removeEventListener('pathologyReportAdded', handleRefreshData);
     };
-  }, []);
+  }, [id.id]);
   
 
   const openPatientProfile = (patient) => {

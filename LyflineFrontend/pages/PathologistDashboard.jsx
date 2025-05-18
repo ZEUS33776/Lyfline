@@ -25,10 +25,8 @@ const ReceptionistDashboard = () => {
     localStorage.removeItem('token')
     navigate("/signin")
   }
-  if (id.id !== localStorage.getItem('hospitalId')) {
-    localStorage.removeItem('token')
-    localStorage.removeItem('hospitalId')
-  }
+  // We'll handle hospital ID validation in useEffect instead of doing it on render
+// This prevents automatic logout on component mount
   const [name,setName]=useState("") 
   useEffect(() => {
     const getName = async () => {
@@ -133,21 +131,48 @@ const ReceptionistDashboard = () => {
   // }, [id]);
   
   useEffect(() => {
-
-    
     const fetchData = async () => {
-      if (id.id == localStorage.getItem('hospitalId')) {
-        await getPatients();
+      // First verify we have a valid token
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/signin');
+          return;
+        }
+        
+        // Check if the hospital ID in the URL matches the one in localStorage
+        const storedHospitalId = localStorage.getItem('hospitalId');
+        if (id.id == storedHospitalId) {
+          await getPatients();
+        } else {
+          // If the hospital IDs don't match, only redirect without clearing localStorage
+          // This prevents losing the token on hospital mismatch
+          navigate('/signin');
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error loading dashboard");
       }
-      else {
-        localStorage.removeItem('token')
-        localStorage.removeItem('hospitalId')
-        navigate('/signin')
-      }
-      
     };
+    
+    // Custom event handler for refreshing data without page reload
+    const handleRefreshData = (event) => {
+      // Only refresh data, no need to validate token again for this specific action
+      getPatients();
+    };
+    
+    // Add event listeners for all our custom events
+    window.addEventListener('patientStatusUpdated', handleRefreshData);
+    window.addEventListener('pathologyReportAdded', handleRefreshData);
+    
     fetchData();
-  }, []);
+    
+    // Clean up event listeners when component unmounts
+    return () => {
+      window.removeEventListener('patientStatusUpdated', handleRefreshData);
+      window.removeEventListener('pathologyReportAdded', handleRefreshData);
+    };
+  }, [id.id]);
   
 
   const openPatientProfile = (patient) => {
