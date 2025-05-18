@@ -57,7 +57,7 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
     
     try {
       // First, get the prediction
-      const predictionRes = await axios.post("http://localhost:3000/predict/heart", {
+      const predictionRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/predict/heart`, {
         "age": age,
         "sex": sex,
         "cp": formData.chest_pain_type,
@@ -79,13 +79,13 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
         submitData.is_critical = true;
         
         // Update critical status in backend
-        await axios.put("http://localhost:3000/critical", { "patient_id": pid });
+        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { "patient_id": pid });
         
         toast.error("Patient is critical. Please consult a Specialist.");
       }
 
       // Submit the report with updated is_critical status
-      const response = await axios.post("http://localhost:3000/add-pathology-report", submitData);
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-pathology-report`, submitData);
       console.log("Report submitted successfully:", response.data);
       onSubmit?.(submitData);
       onClose();

@@ -1,9 +1,8 @@
 import axios from 'axios';
-import config from '../config';
 
-// Create an axios instance with base URL from config
+// Create an axios instance with base URL from environment variable
 const apiClient = axios.create({
-  baseURL: config.API_BASE_URL,
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,33 +23,33 @@ apiClient.interceptors.request.use(
 // API utility functions
 export const api = {
   // Auth
-  login: (data) => apiClient.post(config.auth, data),
+  login: (data) => apiClient.post('/auth', data),
   
   // Patients
-  getPatients: () => apiClient.get(config.getPatients),
-  getPatientsForDoctor: () => apiClient.get(config.getPatientsForDoctor),
-  addPatient: (data) => apiClient.post(config.addPatient, data),
+  getPatients: () => apiClient.get('/get-patients-for-dashboard'),
+  getPatientsForDoctor: () => apiClient.get('/get-patients-for-doctor'),
+  addPatient: (data) => apiClient.post('/add-patient', data),
   
   // User management
-  getUsersForAdmin: (id) => apiClient.get(`${config.getUsersForAdmin}/${id}`),
-  getUserName: (userId) => apiClient.get(`${config.getName}/${userId}`),
-  addUser: (data) => apiClient.post(config.addUser, data),
-  deleteUser: (userId) => apiClient.delete(`${config.deleteUser}/${userId}`),
+  getUsersForAdmin: (id) => apiClient.get(`/get-users-for-admin/${id}`),
+  getUserName: (userId) => apiClient.get(`/get-name/${userId}`),
+  addUser: (data) => apiClient.post('/add-user', data),
+  deleteUser: (userId) => apiClient.delete(`/delete-user/${userId}`),
   
   // Hospital management
-  addHospital: (data) => apiClient.post(config.addHospital, data),
+  addHospital: (data) => apiClient.post('/add-hospital', data),
   
   // Pathology
-  addPathologyReport: (data) => apiClient.post(config.addPathologyReport, data),
+  addPathologyReport: (data) => apiClient.post('/add-pathology-report', data),
   
   // Patient status
-  setCritical: (data) => apiClient.put(config.setCritical, data),
-  setStable: (data) => apiClient.put(config.setStable, data),
-  attendPatient: (data) => apiClient.put(config.attend, data),
+  setCritical: (data) => apiClient.put('/critical', data),
+  setStable: (data) => apiClient.put('/stable', data),
+  attendPatient: (data) => apiClient.put('/attend', data),
   
   // ML predictions
-  predictHeart: (data) => apiClient.post(config.predictHeart, data),
-  predictCHD: (data) => apiClient.post(config.predictCHD, data),
+  predictHeart: (data) => apiClient.post('/predict/heart', data),
+  predictCHD: (data) => apiClient.post('/predict/chd', data),
 };
 
 export default api; 

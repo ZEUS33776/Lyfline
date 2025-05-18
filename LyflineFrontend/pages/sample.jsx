@@ -16,7 +16,7 @@ const DoctorDashboard = () => {
             const loadingToast = toast.loading('Fetching doctor details...');
             try {
                 const user_id = localStorage.getItem("user_id");
-                const res = await axios.get(`http://localhost:3000/get-name/${user_id}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
                 setName(res.data.first_name);
                 toast.success('Welcome, Dr. ' + res.data.first_name, { id: loadingToast });
             } catch (error) {
@@ -55,7 +55,7 @@ const DoctorDashboard = () => {
         setLoading(true);
         const loadingToast = toast.loading('Fetching patient data...');
         try {
-            const response = await axios.get("http://localhost:3000/get-patients-for-doctor");
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-doctor`);
             setPatients(response.data.patients);
             toast.success('Patient data loaded successfully', { id: loadingToast });
         } catch (error) {
@@ -86,7 +86,7 @@ const DoctorDashboard = () => {
         try {
             const patient_id = patient.patient_id;
             const user_id = localStorage.getItem("user_id");
-            await axios.put("http://localhost:3000/attend", { patient_id, user_id });
+            await axios.put(`${import.meta.env.VITE_API_BASE_URL}/attend`, { patient_id, user_id });
             toast.success('Patient status updated successfully', { id: loadingToast });
             window.location.reload();
         } catch (error) {
@@ -100,7 +100,7 @@ const DoctorDashboard = () => {
         try {
             const patient_id = patient.patient_id;
             const user_id = localStorage.getItem("user_id");
-            await axios.put("http://localhost:3000/stable", { patient_id, user_id });
+            await axios.put(`${import.meta.env.VITE_API_BASE_URL}/stable`, { patient_id, user_id });
             toast.success('Patient marked as stable', { id: loadingToast });
             window.location.reload();
         } catch (error) {
@@ -114,7 +114,7 @@ const DoctorDashboard = () => {
         try {
             const patient_id = patient.patient_id;
             const user_id = localStorage.getItem("user_id");
-            await axios.put("http://localhost:3000/critical", { patient_id, user_id });
+            await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { patient_id, user_id });
             toast.success('Patient marked as critical', { id: loadingToast });
             window.location.reload();
         } catch (error) {
@@ -222,3 +222,4 @@ const DoctorDashboard = () => {
             {text}
         </span>
     );
+}

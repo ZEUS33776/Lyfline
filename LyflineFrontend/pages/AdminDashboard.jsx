@@ -85,7 +85,7 @@ const UserManagementDashboard = () => {
   const usersForAdmin = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3000/get-users-for-admin/${id}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-users-for-admin/${id}`);
       setUsers(response.data.rows);
     } catch (error) {
       toast.error('Failed to fetch users');
@@ -103,7 +103,7 @@ const UserManagementDashboard = () => {
   const addUser = async () => {
     setIsLoading(true);
     try {
-      await axios.post('http://localhost:3000/add-user', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-user`, {
         ...form,
         role: form.role.charAt(0).toUpperCase() + form.role.slice(1),
         hospital_id: id,
@@ -122,7 +122,7 @@ const UserManagementDashboard = () => {
   const deleteUser = async (userId) => {
     setIsLoading(true);
     try {
-      await axios.delete(`http://localhost:3000/delete-user/${userId}`);
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/delete-user/${userId}`);
       toast.success('User deleted successfully!');
       await usersForAdmin();
       setIsDeleteModalOpen(false);

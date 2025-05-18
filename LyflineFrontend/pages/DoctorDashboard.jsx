@@ -4,7 +4,6 @@ import { Search, Plus, FileText, X, Heart, Activity, Calendar, AlertCircle } fro
 import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
-
 import toast, { Toaster } from 'react-hot-toast';
 import {jwtDecode} from 'jwt-decode';
 const DoctorDashboard = () => {
@@ -13,7 +12,7 @@ const DoctorDashboard = () => {
     const getName = async () => {
       const user_id = localStorage.getItem("user_id")
       // alert(user_id)
-      const res = await axios.get(`http://localhost:3000/get-name/${user_id}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
       console.log(res)
       setName(res.data.first_name )
       
@@ -45,7 +44,7 @@ const DoctorDashboard = () => {
   // Mock data updated to match schema
   const getPatients = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/get-patients-for-doctor");
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-doctor`);
       console.log(response.data.patients);
       setPatients(response.data.patients);
       // toast.success("Patients fetched successfully!")
@@ -73,7 +72,7 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-          const response = await axios.put("http://localhost:3000/attend", { patient_id, user_id });
+          const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/attend`, { patient_id, user_id });
           toast.success("Patient is being attended!")
           setTimeout(() => {
             window.location.reload()
@@ -90,7 +89,7 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-          const response = await axios.put("http://localhost:3000/stable", { patient_id, user_id });
+          const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/stable`, { patient_id, user_id });
           toast.success("Patient is being marked stable successfully!")
           setTimeout(() => {
             window.location.reload()
@@ -107,7 +106,7 @@ const DoctorDashboard = () => {
           console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
-          const response = await axios.put("http://localhost:3000/critical", { patient_id, user_id });
+          const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { patient_id, user_id });
           toast.success("Patient is marked critical!")
           setTimeout(() => {
             window.location.reload()

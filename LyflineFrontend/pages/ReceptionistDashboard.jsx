@@ -7,7 +7,6 @@ import axios from 'axios';
 import HealthFormModal from "../src/components/HealthModal"
 import {toast,Toaster} from 'react-hot-toast';
 import { jwtDecode } from 'jwt-decode';
- 
 
 
 
@@ -34,7 +33,7 @@ const ReceptionistDashboard = () => {
   // Mock data updated to match schema
   const getPatients = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/get-patients-for-dashboard");
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-dashboard`);
       console.log(response.data.patients);
       setPatients(response.data.patients);
     } catch (error) {
@@ -463,7 +462,7 @@ const [name,setName]=useState("")
     const getName = async () => {
       const user_id = localStorage.getItem("user_id")
       // alert(user_id)
-      const res = await axios.get(`http://localhost:3000/get-name/${user_id}`);
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
       console.log(res)
       setName(res.data.first_name )
       

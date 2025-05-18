@@ -46,7 +46,7 @@ const HealthFormModal = ({hid}) => {
   };
     const handleAddPatient = async () => {
         try {
-            const response = await axios.post("http://localhost:3000/add-patient", formData)
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-patient`, formData)
         }
         catch (error) {
             console.log(error)
@@ -72,7 +72,7 @@ const HealthFormModal = ({hid}) => {
 //   #  }' http://localhost:5001/predict/chd
 const handlePreModel = async () => {
   try {
-    const response = await axios.post("http://localhost:3000/predict/chd", {
+    const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/predict/chd`, {
       male: formData.male,
       age: formData.age,
       education: formData.education,

@@ -106,7 +106,7 @@ const RegisterHospital = () => {
   const registerHospitalAndAdmin = async () => {
     try {
       // Add hospital
-      const hospitalResponse = await axios.post('http://localhost:3000/add-hospital', {
+      const hospitalResponse = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-hospital`, {
         name: formData.hospitalName,
         address: formData.hospitalAddress,
         phone: formData.hospitalPhone,
@@ -120,7 +120,7 @@ const RegisterHospital = () => {
       const hospitalId = hospitalResponse.data.hospitalId;
 
       // Add admin user
-      await axios.post('http://localhost:3000/add-user', {
+      await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-user`, {
         email: formData.hospitalEmail,
         password: formData.password,
         first_name: formData.hospitalName,
