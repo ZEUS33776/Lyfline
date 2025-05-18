@@ -45,7 +45,16 @@ const Auth = () => {
       const hospitalId = await handleAuth();
       
       toast.success("Credentials verified!");
-      setTimeout(() => { navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`)},1000);
+      
+      // Delay navigation slightly to ensure token is properly saved
+      setTimeout(() => { 
+        // Verify token is in localStorage before navigation
+        if (localStorage.getItem('token')) {
+          navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`);
+        } else {
+          toast.error('Login failed. Please try again.');
+        }
+      }, 1000);
     } catch (error) {
       toast.error('An error occurred. Please try again.');
     } finally {

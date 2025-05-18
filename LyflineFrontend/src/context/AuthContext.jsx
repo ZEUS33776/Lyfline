@@ -31,22 +31,39 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         
-        // Validate token expiration
-        const decoded = jwtDecode(token);
-        const currentTime = Date.now() / 1000;
-        
-        if (decoded.exp < currentTime) {
-          // Token expired, clear auth data
+        try {
+          // Validate token expiration
+          const decoded = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+          
+          if (decoded.exp && decoded.exp < currentTime) {
+            // Token expired, clear auth data
+            console.log('Token expired');
+            clearAuthData();
+            setUser(null);
+          } else {
+            // Valid token, set user data
+            const userId = localStorage.getItem('user_id');
+            const hospitalId = localStorage.getItem('hospitalId');
+            const userRole = localStorage.getItem('userRole');
+            
+            if (!userId || !hospitalId || !userRole) {
+              console.log('Missing user data');
+              clearAuthData();
+              setUser(null);
+            } else {
+              setUser({
+                userId,
+                hospitalId,
+                role: userRole,
+                token
+              });
+            }
+          }
+        } catch (decodeError) {
+          console.error('Token decode error:', decodeError);
           clearAuthData();
           setUser(null);
-        } else {
-          // Valid token, set user data
-          setUser({
-            userId: localStorage.getItem('user_id'),
-            hospitalId: localStorage.getItem('hospitalId'),
-            role: localStorage.getItem('userRole'),
-            token
-          });
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -58,7 +75,21 @@ export const AuthProvider = ({ children }) => {
     };
     
     initAuth();
-  }, []);
+    
+    // Set up storage event listener to sync auth state across tabs
+    const handleStorageChange = (e) => {
+      if (e.key === 'token' && !e.newValue) {
+        // Token was removed in another tab
+        setUser(null);
+      } else if (e.key === 'token' && e.newValue) {
+        // Token was added in another tab
+        initAuth();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [navigate]);
   
   // Clear all auth data
   const clearAuthData = () => {
@@ -71,6 +102,11 @@ export const AuthProvider = ({ children }) => {
   // Login function
   const login = (userData) => {
     try {
+      if (!userData || !userData.token) {
+        console.error('Invalid user data for login', userData);
+        return false;
+      }
+      
       // Store in localStorage
       localStorage.setItem('token', userData.token);
       localStorage.setItem('hospitalId', userData.hospitalId);
@@ -101,13 +137,20 @@ export const AuthProvider = ({ children }) => {
   
   // Check if user is authenticated
   const isAuthenticated = () => {
-    if (!user) return false;
+    if (!user || !user.token) return false;
     
     try {
       const decoded = jwtDecode(user.token);
       const currentTime = Date.now() / 1000;
-      return decoded.exp > currentTime;
+      
+      // Some tokens might not have an expiration
+      if (decoded.exp && decoded.exp < currentTime) {
+        return false;
+      }
+      
+      return true;
     } catch (error) {
+      console.error('Auth validation error:', error);
       return false;
     }
   };
@@ -115,7 +158,7 @@ export const AuthProvider = ({ children }) => {
   // Check if user has access to a specific hospital
   const hasHospitalAccess = (hospitalId) => {
     if (!user) return false;
-    return parseInt(user.hospitalId) === parseInt(hospitalId);
+    return user.hospitalId && parseInt(user.hospitalId) === parseInt(hospitalId);
   };
   
   // Auth context value
