@@ -69,9 +69,12 @@ const DoctorDashboard = () => {
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/attend`, { patient_id, user_id });
           toast.success("Patient is being attended!")
-          setTimeout(() => {
-            window.location.reload()
-          },1000)
+          
+          // Create a custom event to refresh data without page reload
+          const refreshEvent = new CustomEvent('patientStatusUpdated', {
+            detail: { action: 'attend', patientId: patient_id }
+          });
+          window.dispatchEvent(refreshEvent);
       
         } catch (error) {
           toast.error("Error attending patient")
@@ -83,9 +86,12 @@ const DoctorDashboard = () => {
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/stable`, { patient_id, user_id });
           toast.success("Patient is being marked stable successfully!")
-          setTimeout(() => {
-            window.location.reload()
-          },1000)
+          
+          // Create a custom event to refresh data without page reload
+          const refreshEvent = new CustomEvent('patientStatusUpdated', {
+            detail: { action: 'stable', patientId: patient_id }
+          });
+          window.dispatchEvent(refreshEvent);
       
         } catch (error) {
           toast.error("Error updating patient status")
@@ -97,9 +103,12 @@ const DoctorDashboard = () => {
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { patient_id, user_id });
           toast.success("Patient is marked critical!")
-          setTimeout(() => {
-            window.location.reload()
-          },1000)
+          
+          // Create a custom event to refresh data without page reload
+          const refreshEvent = new CustomEvent('patientStatusUpdated', {
+            detail: { action: 'critical', patientId: patient_id }
+          });
+          window.dispatchEvent(refreshEvent);
       
         } catch (error) {
           toast.error("Error marking patient as critical")
@@ -149,8 +158,6 @@ const DoctorDashboard = () => {
   };
   
   useEffect(() => {
-
-    
     const fetchData = async () => {
       if (!localStorage.getItem('token')) {
         localStorage.clear()
@@ -165,9 +172,24 @@ const DoctorDashboard = () => {
         localStorage.clear()
         navigate('/signin')
       }
-      
     };
+    
+    // Custom event handler for refreshing data without page reload
+    const handleRefreshData = () => {
+      fetchData();
+    };
+    
+    // Add event listeners for all our custom events
+    window.addEventListener('patientStatusUpdated', handleRefreshData);
+    window.addEventListener('pathologyReportAdded', handleRefreshData);
+    
     fetchData();
+    
+    // Clean up event listeners when component unmounts
+    return () => {
+      window.removeEventListener('patientStatusUpdated', handleRefreshData);
+      window.removeEventListener('pathologyReportAdded', handleRefreshData);
+    };
   }, []);
   
 

@@ -83,7 +83,12 @@ const DoctorDashboard = () => {
             const user_id = localStorage.getItem("user_id");
             await axios.put(`${import.meta.env.VITE_API_BASE_URL}/attend`, { patient_id, user_id });
             toast.success('Patient status updated successfully', { id: loadingToast });
-            window.location.reload();
+            
+            // Create a custom event to refresh data without page reload
+            const refreshEvent = new CustomEvent('patientStatusUpdated', {
+                detail: { action: 'attend', patientId: patient_id }
+            });
+            window.dispatchEvent(refreshEvent);
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
         }
@@ -96,7 +101,12 @@ const DoctorDashboard = () => {
             const user_id = localStorage.getItem("user_id");
             await axios.put(`${import.meta.env.VITE_API_BASE_URL}/stable`, { patient_id, user_id });
             toast.success('Patient marked as stable', { id: loadingToast });
-            window.location.reload();
+            
+            // Create a custom event to refresh data without page reload
+            const refreshEvent = new CustomEvent('patientStatusUpdated', {
+                detail: { action: 'stable', patientId: patient_id }
+            });
+            window.dispatchEvent(refreshEvent);
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
         }
@@ -109,7 +119,12 @@ const DoctorDashboard = () => {
             const user_id = localStorage.getItem("user_id");
             await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { patient_id, user_id });
             toast.success('Patient marked as critical', { id: loadingToast });
-            window.location.reload();
+            
+            // Create a custom event to refresh data without page reload
+            const refreshEvent = new CustomEvent('patientStatusUpdated', {
+                detail: { action: 'critical', patientId: patient_id }
+            });
+            window.dispatchEvent(refreshEvent);
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
         }
@@ -177,7 +192,23 @@ const DoctorDashboard = () => {
                 navigate('/signin');
             }
         };
+        
+        // Custom event handler for refreshing data without page reload
+        const handleRefreshData = () => {
+            fetchData();
+        };
+        
+        // Add event listeners for all our custom events
+        window.addEventListener('patientStatusUpdated', handleRefreshData);
+        window.addEventListener('pathologyReportAdded', handleRefreshData);
+        
         fetchData();
+        
+        // Clean up event listeners when component unmounts
+        return () => {
+            window.removeEventListener('patientStatusUpdated', handleRefreshData);
+            window.removeEventListener('pathologyReportAdded', handleRefreshData);
+        };
     }, []);
 
     const openPatientProfile = (patient) => {

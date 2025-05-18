@@ -82,12 +82,15 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
 
       // Submit the report with updated is_critical status
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-pathology-report`, submitData);
+      toast.success("Report submitted successfully!");
       onSubmit?.(submitData);
       onClose();
       
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
+      // Instead of reloading the page, use a custom event to trigger state refresh
+      const refreshEvent = new CustomEvent('pathologyReportAdded', {
+        detail: { patientId: pid }
+      });
+      window.dispatchEvent(refreshEvent);
       
     } catch (error) {
       toast.error("Failed to submit report. Please try again.");
