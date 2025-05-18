@@ -36,8 +36,8 @@ export const AuthProvider = ({ children }) => {
           const decoded = jwtDecode(token);
           const currentTime = Date.now() / 1000;
           
+          // Check if token has expiration and if it's expired
           if (decoded.exp && decoded.exp < currentTime) {
-            // Token expired, clear auth data
             console.log('Token expired');
             clearAuthData();
             setUser(null);
@@ -52,12 +52,24 @@ export const AuthProvider = ({ children }) => {
               clearAuthData();
               setUser(null);
             } else {
+              // Ensure we preserve the correct type for these values
               setUser({
-                userId,
-                hospitalId,
+                userId: userId,
+                hospitalId: hospitalId,
                 role: userRole,
-                token
+                token: token
               });
+              
+              // Validate the token by making a simple API request
+              // This can be added if you have an endpoint to validate tokens
+              /*
+              api.validateToken()
+                .catch(error => {
+                  console.error('Token validation failed:', error);
+                  clearAuthData();
+                  setUser(null);
+                });
+              */
             }
           }
         } catch (decodeError) {
@@ -74,22 +86,28 @@ export const AuthProvider = ({ children }) => {
       }
     };
     
+    // Call initialization immediately
     initAuth();
     
     // Set up storage event listener to sync auth state across tabs
     const handleStorageChange = (e) => {
-      if (e.key === 'token' && !e.newValue) {
-        // Token was removed in another tab
-        setUser(null);
-      } else if (e.key === 'token' && e.newValue) {
-        // Token was added in another tab
+      if (e.key === 'token') {
+        if (!e.newValue) {
+          // Token was removed in another tab
+          setUser(null);
+        } else {
+          // Token was added or changed in another tab
+          initAuth();
+        }
+      } else if (e.key === 'user_id' || e.key === 'hospitalId' || e.key === 'userRole') {
+        // Other auth data changed, reinitialize
         initAuth();
       }
     };
     
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, [navigate]);
+  }, []);  // Remove navigate dependency to prevent unnecessary re-initialization
   
   // Clear all auth data
   const clearAuthData = () => {
@@ -100,18 +118,33 @@ export const AuthProvider = ({ children }) => {
   };
   
   // Login function
-  const login = (userData) => {
+  const login = async (userData) => {
     try {
       if (!userData || !userData.token) {
         console.error('Invalid user data for login', userData);
         return false;
       }
       
+      // Clear any existing data first
+      clearAuthData();
+      
       // Store in localStorage
       localStorage.setItem('token', userData.token);
       localStorage.setItem('hospitalId', userData.hospitalId);
       localStorage.setItem('user_id', userData.userId);
       localStorage.setItem('userRole', userData.role);
+      
+      // Verify data was actually stored
+      const tokenStored = localStorage.getItem('token') === userData.token;
+      const idStored = localStorage.getItem('user_id') === userData.userId;
+      const roleStored = localStorage.getItem('userRole') === userData.role;
+      const hospitalStored = localStorage.getItem('hospitalId') === userData.hospitalId;
+      
+      if (!tokenStored || !idStored || !roleStored || !hospitalStored) {
+        console.error('Failed to store auth data in localStorage');
+        clearAuthData();
+        return false;
+      }
       
       // Update state
       setUser({
@@ -124,6 +157,7 @@ export const AuthProvider = ({ children }) => {
       return true;
     } catch (error) {
       console.error('Login error:', error);
+      clearAuthData();
       return false;
     }
   };
@@ -137,20 +171,65 @@ export const AuthProvider = ({ children }) => {
   
   // Check if user is authenticated
   const isAuthenticated = () => {
-    if (!user || !user.token) return false;
+    // First check if we have user data in state
+    if (!user || !user.token) {
+      // If not, check directly in localStorage as fallback
+      const token = localStorage.getItem('token');
+      if (!token) return false;
+      
+      try {
+        const decoded = jwtDecode(token);
+        const currentTime = Date.now() / 1000;
+        
+        // Check if token has expiration and if it's expired
+        if (decoded.exp && decoded.exp < currentTime) {
+          // Token expired
+          clearAuthData();
+          return false;
+        }
+        
+        // Token is valid - reconstruct user if needed
+        if (!user) {
+          const userId = localStorage.getItem('user_id');
+          const hospitalId = localStorage.getItem('hospitalId');
+          const userRole = localStorage.getItem('userRole');
+          
+          if (userId && hospitalId && userRole) {
+            // Set user in next tick to avoid state update during render
+            setTimeout(() => {
+              setUser({
+                userId,
+                hospitalId,
+                role: userRole,
+                token
+              });
+            }, 0);
+          }
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Token validation error from localStorage:', error);
+        clearAuthData();
+        return false;
+      }
+    }
     
+    // User exists in state, validate the token
     try {
       const decoded = jwtDecode(user.token);
       const currentTime = Date.now() / 1000;
       
       // Some tokens might not have an expiration
       if (decoded.exp && decoded.exp < currentTime) {
+        clearAuthData();
         return false;
       }
       
       return true;
     } catch (error) {
       console.error('Auth validation error:', error);
+      clearAuthData();
       return false;
     }
   };

@@ -22,17 +22,22 @@ const Auth = () => {
         role
       });
       
-      // Use auth context login
-      login({
+      // Use auth context login (now async)
+      const loginSuccess = await login({
         token: response.data.token,
         hospitalId: response.data.hospitalId,
         userId: response.data.user_id,
         role
       });
       
+      if (!loginSuccess) {
+        throw new Error('Failed to set login data');
+      }
+      
       toast.success('Login successful!');
       return response.data.hospitalId;
     } catch (error) {
+      console.error('Login error:', error);
       toast.error('Authentication failed. Please check your credentials.');
       throw error;
     }
@@ -46,16 +51,22 @@ const Auth = () => {
       
       toast.success("Credentials verified!");
       
+      // Double-check that the login data is set
+      if (!localStorage.getItem('token')) {
+        throw new Error('Login data not set properly');
+      }
+      
       // Delay navigation slightly to ensure token is properly saved
       setTimeout(() => { 
-        // Verify token is in localStorage before navigation
+        // Final verification before navigation
         if (localStorage.getItem('token')) {
           navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`);
         } else {
           toast.error('Login failed. Please try again.');
         }
-      }, 1000);
+      }, 100); // Reduced timeout for better UX
     } catch (error) {
+      console.error('Login submission error:', error);
       toast.error('An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
