@@ -22,20 +22,30 @@ const Auth = () => {
         role
       });
       
-      // Use auth context login (now async)
-      const loginSuccess = await login({
+      // Prepare login data
+      const loginData = {
         token: response.data.token,
         hospitalId: response.data.hospitalId,
         userId: response.data.user_id,
         role
-      });
+      };
+      
+      // Use auth context login (now async)
+      const loginSuccess = await login(loginData);
       
       if (!loginSuccess) {
         throw new Error('Failed to set login data');
       }
       
-      toast.success('Login successful!');
-      return response.data.hospitalId;
+      // Verify token was correctly set
+      if (!localStorage.getItem('token')) {
+        throw new Error('Token not found after login');
+      }
+      
+      return { 
+        success: true,
+        hospitalId: response.data.hospitalId 
+      };
     } catch (error) {
       console.error('Login error:', error);
       toast.error('Authentication failed. Please check your credentials.');
@@ -46,25 +56,21 @@ const Auth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    
     try {
-      const hospitalId = await handleAuth();
+      const result = await handleAuth();
       
-      toast.success("Credentials verified!");
-      
-      // Double-check that the login data is set
-      if (!localStorage.getItem('token')) {
-        throw new Error('Login data not set properly');
+      if (result.success) {
+        toast.success("Login successful!");
+        
+        // Navigate to dashboard after ensuring login was successful
+        const dashboardPath = `/${role.toLowerCase()}-dashboard/${result.hospitalId}`;
+        
+        // Small delay to ensure state updates have propagated
+        setTimeout(() => {
+          navigate(dashboardPath, { replace: true });
+        }, 50);
       }
-      
-      // Delay navigation slightly to ensure token is properly saved
-      setTimeout(() => { 
-        // Final verification before navigation
-        if (localStorage.getItem('token')) {
-          navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`);
-        } else {
-          toast.error('Login failed. Please try again.');
-        }
-      }, 100); // Reduced timeout for better UX
     } catch (error) {
       console.error('Login submission error:', error);
       toast.error('An error occurred. Please try again.');

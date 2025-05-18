@@ -5,7 +5,12 @@ import App from './App.jsx'
 import './index.css'
 import { AuthProvider } from './context/AuthContext'
 
-createRoot(document.getElementById('root')).render(
+// Create root once
+const rootElement = document.getElementById('root');
+const root = createRoot(rootElement);
+
+// Render with proper provider order
+root.render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
