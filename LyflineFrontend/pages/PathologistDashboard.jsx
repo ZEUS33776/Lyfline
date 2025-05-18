@@ -6,8 +6,8 @@ import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import HealthFormModal from "../src/components/HealthModal"
 import {toast,Toaster} from 'react-hot-toast';
-import { jwtDecode } from 'jwt-decode';
 import PathologyReportForm from '../src/components/PathologyModal';
+import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../utils/authHelper';
 
 const ReceptionistDashboard = () => {
   
@@ -22,8 +22,12 @@ const ReceptionistDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [patients,setPatients]=useState([])
   const handleSignOut = () => {
-    localStorage.removeItem('token')
-    navigate("/signin")
+    // Clear all auth data
+    localStorage.removeItem('token');
+    localStorage.removeItem('hospitalId');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('userRole');
+    navigate("/signin");
   }
   // We'll handle hospital ID validation in useEffect instead of doing it on render
 // This prevents automatic logout on component mount
@@ -60,21 +64,10 @@ const ReceptionistDashboard = () => {
       toast.error("Error fetching patients");
     }
   };
-  const getHospitalIdFromToken = () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-      const decoded = jwtDecode(token);
-      return decoded.hospitalId;
-    } catch (error) {
-      return null;
-    }
-  };
-  const allowedHospital = getHospitalIdFromToken()
+  // Using auth helper for more consistent token handling
+  const allowedHospital = getHospitalId();
   const checkHospitalAccess = () => {
-    const hospitalId = getHospitalIdFromToken();
+    const hospitalId = getHospitalId();
     if (!hospitalId) {
       toast.error('Authentication required');
       navigate("/signin");
@@ -83,7 +76,7 @@ const ReceptionistDashboard = () => {
 
     if (hospitalId !== parseInt(id.id)) {
       toast.error('Unauthorized access');
-      localStorage.removeItem('token')
+      // Don't remove token on hospital mismatch - just redirect
       navigate("/signin");
       return false;
     }
@@ -96,28 +89,12 @@ const ReceptionistDashboard = () => {
     setIsModalOpen(false);
   };
   const checkAuth = () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No token found');
-      }
-
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-
-      if (decoded.exp < currentTime) {
-        localStorage.removeItem('token');
-        toast.error('Session expired. Please log in again.');
-        navigate("/signin");
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      toast.error('Authentication error');
+    if (!isAuthenticated()) {
+      toast.error('Session expired. Please log in again.');
       navigate("/signin");
       return false;
     }
+    return true;
   };
   // useEffect(() => {
   //   const init = async () => {
@@ -133,31 +110,31 @@ const ReceptionistDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       // First verify we have a valid token
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/signin');
-          return;
-        }
-        
-        // Check if the hospital ID in the URL matches the one in localStorage
-        const storedHospitalId = localStorage.getItem('hospitalId');
-        if (id.id == storedHospitalId) {
+      if (!isAuthenticated()) {
+        // Don't clear token here, just redirect
+        navigate('/signin');
+        return;
+      }
+      
+      // Check if the hospital ID in the URL matches the one in localStorage
+      if (hasHospitalAccess(id.id)) {
+        // If authenticated and has hospital access, fetch data
+        try {
           await getPatients();
-        } else {
-          // If the hospital IDs don't match, only redirect without clearing localStorage
-          // This prevents losing the token on hospital mismatch
-          navigate('/signin');
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          toast.error("Error loading dashboard");
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Error loading dashboard");
+      } else {
+        // If the hospital IDs don't match, redirect but don't clear localStorage
+        // This prevents session loss on hospital mismatch
+        navigate('/signin');
       }
     };
     
     // Custom event handler for refreshing data without page reload
     const handleRefreshData = (event) => {
-      // Only refresh data, no need to validate token again for this specific action
+      // Only refresh data, no auth check needed for specific event-triggered refresh
       getPatients();
     };
     
@@ -172,7 +149,7 @@ const ReceptionistDashboard = () => {
       window.removeEventListener('patientStatusUpdated', handleRefreshData);
       window.removeEventListener('pathologyReportAdded', handleRefreshData);
     };
-  }, [id.id]);
+  }, [id.id, navigate]);
   
 
   const openPatientProfile = (patient) => {

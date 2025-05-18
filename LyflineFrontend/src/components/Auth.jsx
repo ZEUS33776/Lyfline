@@ -19,9 +19,14 @@ const Auth = () => {
         password,
         role
       });
+      // Store user data in localStorage for persistence
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('hospitalId', response.data.hospitalId);
       localStorage.setItem('user_id', response.data.user_id);
+      
+      // Also store role for more robust session persistence
+      localStorage.setItem('userRole', role);
+      
       toast.success('Login successful!');
       return response.data.hospitalId;
     } catch (error) {

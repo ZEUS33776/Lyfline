@@ -5,7 +5,9 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
+import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../utils/authHelper';
 import {jwtDecode} from 'jwt-decode';
+
 const DoctorDashboard = () => {
     const [name,setName]=useState("") 
   useEffect(() => {
@@ -31,10 +33,12 @@ const DoctorDashboard = () => {
   const [showReportModal, setShowReportModal] = useState(false);
   const [patients,setPatients]=useState([])
   const handleSignOut = () => {
-
-    localStorage.clear()
-     
-    navigate("/signin")
+    // Clear all auth data
+    localStorage.removeItem('token');
+    localStorage.removeItem('hospitalId');
+    localStorage.removeItem('user_id');
+    localStorage.removeItem('userRole');
+    navigate("/signin");
   }
   // Hospital ID validation will be handled in useEffect instead of on render
 // This prevents automatic logout on component mount
@@ -157,32 +161,32 @@ const DoctorDashboard = () => {
   
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        // First verify we have a valid token
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/signin');
-          return;
-        }
-        
-        // Check if the hospital ID in the URL matches the one in localStorage
-        const storedHospitalId = localStorage.getItem('hospitalId');
-        if (id.id == storedHospitalId) {
+      // First verify we have a valid token
+      if (!isAuthenticated()) {
+        // Don't clear token here, just redirect
+        navigate('/signin');
+        return;
+      }
+      
+      // Check if the hospital ID in the URL matches the one in localStorage
+      if (hasHospitalAccess(id.id)) {
+        // If authenticated and has hospital access, fetch data
+        try {
           await getPatients();
-        } else {
-          // If the hospital IDs don't match, only redirect without clearing localStorage
-          // This prevents losing the token on refreshes
-          navigate('/signin');
+        } catch (error) {
+          console.error("Error fetching data:", error);
+          toast.error("Error loading dashboard");
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Error loading dashboard");
+      } else {
+        // If the hospital IDs don't match, redirect but don't clear localStorage
+        // This prevents session loss on hospital mismatch
+        navigate('/signin');
       }
     };
     
     // Custom event handler for refreshing data without page reload
     const handleRefreshData = (event) => {
-      // Only refresh data, no need to validate token again for this specific action
+      // Only refresh data, no auth check needed for specific event-triggered refresh
       getPatients();
     };
     
@@ -197,7 +201,7 @@ const DoctorDashboard = () => {
       window.removeEventListener('patientStatusUpdated', handleRefreshData);
       window.removeEventListener('pathologyReportAdded', handleRefreshData);
     };
-  }, [id.id]);
+  }, [id.id, navigate]);
   
 
   const openPatientProfile = (patient) => {

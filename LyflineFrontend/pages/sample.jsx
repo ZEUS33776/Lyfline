@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../utils/authHelper';
 import {jwtDecode} from 'jwt-decode';
 
 const DoctorDashboard = () => {
@@ -38,16 +39,12 @@ const DoctorDashboard = () => {
 
     const handleSignOut = () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('hospitalId');
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('userRole');
         toast.success('Signed out successfully');
         navigate("/signin");
     };
-
-    if (id.id !== localStorage.getItem('hospitalId')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('hospitalId');
-        toast.error('Invalid hospital access');
-        navigate('/signin');
-    }
 
     const getPatients = async () => {
         setLoading(true);
@@ -177,7 +174,12 @@ const DoctorDashboard = () => {
   
     useEffect(() => {
         const fetchData = async () => {
-            if (id.id == localStorage.getItem('hospitalId')) {
+            if (!isAuthenticated()) {
+                navigate('/signin');
+                return;
+            }
+            
+            if (hasHospitalAccess(id.id)) {
                 const loadingToast = toast.loading('Loading dashboard...');
                 try {
                     await getPatients();
@@ -186,30 +188,24 @@ const DoctorDashboard = () => {
                     toast.error('Failed to load dashboard', { id: loadingToast });
                 }
             } else {
-                localStorage.removeItem('token');
-                localStorage.removeItem('hospitalId');
-                toast.error('Invalid hospital access');
                 navigate('/signin');
             }
         };
         
-        // Custom event handler for refreshing data without page reload
-        const handleRefreshData = () => {
-            fetchData();
+        const handleRefreshData = (event) => {
+            getPatients();
         };
         
-        // Add event listeners for all our custom events
         window.addEventListener('patientStatusUpdated', handleRefreshData);
         window.addEventListener('pathologyReportAdded', handleRefreshData);
         
         fetchData();
         
-        // Clean up event listeners when component unmounts
         return () => {
             window.removeEventListener('patientStatusUpdated', handleRefreshData);
             window.removeEventListener('pathologyReportAdded', handleRefreshData);
         };
-    }, []);
+    }, [id.id, navigate]);
 
     const openPatientProfile = (patient) => {
         setSelectedPatient(patient);
