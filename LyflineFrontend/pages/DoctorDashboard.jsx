@@ -24,7 +24,6 @@ const DoctorDashboard = () => {
   const navigate=useNavigate()
   const [searchQuery, setSearchQuery] = useState('');
   const id = useParams()
-  console.log(id.id)
   const [selectedRole, setSelectedRole] = useState('All');
   const [selectedPatient, setSelectedPatient] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -45,12 +44,11 @@ const DoctorDashboard = () => {
   const getPatients = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-doctor`);
-      console.log(response.data.patients);
       setPatients(response.data.patients);
       // toast.success("Patients fetched successfully!")
       
     } catch (error) {
-      console.error("Error fetching patients:", error);
+      toast.error("Error fetching patients")
     }
   };
   const getHospitalIdFromToken = () => {
@@ -60,16 +58,13 @@ const DoctorDashboard = () => {
         throw new Error('No token found');
       }
       const decoded = jwtDecode(token);
-      console.log(decoded)
       return decoded.hospitalId;
     } catch (error) {
-      console.error('Error getting hospital ID:', error);
       return null;
     }
     };
     const attend = async (patient) => {
         try {
-          console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/attend`, { patient_id, user_id });
@@ -77,16 +72,13 @@ const DoctorDashboard = () => {
           setTimeout(() => {
             window.location.reload()
           },1000)
-           
       
-          console.log(response.data); // Optional: log the response data
         } catch (error) {
-          console.error("Error attending patient:", error);
+          toast.error("Error attending patient")
         }
     };
     const stable = async (patient) => {
         try {
-          console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/stable`, { patient_id, user_id });
@@ -94,16 +86,13 @@ const DoctorDashboard = () => {
           setTimeout(() => {
             window.location.reload()
           },1000)
-            
       
-          console.log(response.data); // Optional: log the response data
         } catch (error) {
-          console.error("Error updating patient status to stable:", error);
+          toast.error("Error updating patient status")
         }
     };
     const critical = async (patient) => {
         try {
-          console.log(patient.patient_id);
             const patient_id = patient.patient_id;
             const user_id=localStorage.getItem("user_id")
           const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/critical`, { patient_id, user_id });
@@ -111,11 +100,9 @@ const DoctorDashboard = () => {
           setTimeout(() => {
             window.location.reload()
           },1000)
-            
       
-          console.log(response.data); // Optional: log the response data
         } catch (error) {
-          console.error("Error updating patient status to critical:", error);
+          toast.error("Error marking patient as critical")
         }
       };
   const allowedHospital = getHospitalIdFromToken()

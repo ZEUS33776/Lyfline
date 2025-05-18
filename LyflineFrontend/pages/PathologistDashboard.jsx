@@ -14,7 +14,6 @@ const ReceptionistDashboard = () => {
   const navigate=useNavigate()
   const [searchQuery, setSearchQuery] = useState('');
   const id = useParams()
-  console.log(id.id)
   const [selectedRole, setSelectedRole] = useState('All');
   const [selectedPatient, setSelectedPatient] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -36,7 +35,6 @@ const ReceptionistDashboard = () => {
       const user_id = localStorage.getItem("user_id")
       // alert(user_id)
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
-      console.log(res)
       setName(res.data.first_name )
       
     }
@@ -48,10 +46,9 @@ const ReceptionistDashboard = () => {
     const getPatients = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-dashboard`);
-        console.log(response.data.patients);
         setPatients(response.data.patients);
       } catch (error) {
-        console.error("Error fetching patients:", error);
+        toast.error("Error fetching patients");
       }
     };
     getPatients()
@@ -60,10 +57,9 @@ const ReceptionistDashboard = () => {
   const getPatients = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-dashboard`);
-      console.log(response.data.patients);
       setPatients(response.data.patients);
     } catch (error) {
-      console.error("Error fetching patients:", error);
+      toast.error("Error fetching patients");
     }
   };
   const getHospitalIdFromToken = () => {
@@ -73,10 +69,8 @@ const ReceptionistDashboard = () => {
         throw new Error('No token found');
       }
       const decoded = jwtDecode(token);
-      console.log(decoded)
       return decoded.hospitalId;
     } catch (error) {
-      console.error('Error getting hospital ID:', error);
       return null;
     }
   };

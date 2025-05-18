@@ -41,7 +41,6 @@ const UserManagementDashboard = () => {
       const decoded = jwtDecode(token);
       return decoded.hospitalId;
     } catch (error) {
-      console.error('Error getting hospital ID:', error);
       return null;
     }
   };

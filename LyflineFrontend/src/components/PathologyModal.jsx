@@ -39,8 +39,6 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
       ...prev,
       [name]: newValue
     }));
-    
-    console.log(`Field ${name} updated to:`, newValue);
   };
 
   const handleSubmit = async (e) => {
@@ -52,8 +50,6 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
         value === '' ? null : value
       ])
     );
-    
-    console.log('Submitting data:', submitData);
     
     try {
       // First, get the prediction
@@ -86,7 +82,6 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
 
       // Submit the report with updated is_critical status
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-pathology-report`, submitData);
-      console.log("Report submitted successfully:", response.data);
       onSubmit?.(submitData);
       onClose();
       
@@ -95,7 +90,6 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
       }, 1500);
       
     } catch (error) {
-      console.log("Error submitting the report:", error);
       toast.error("Failed to submit report. Please try again.");
     }
   };

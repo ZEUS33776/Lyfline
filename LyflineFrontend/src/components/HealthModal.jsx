@@ -49,7 +49,7 @@ const HealthFormModal = ({hid}) => {
             const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/add-patient`, formData)
         }
         catch (error) {
-            console.log(error)
+            toast.error("Error adding patient")
         }
     
   }
@@ -90,8 +90,6 @@ const handlePreModel = async () => {
       glucose: 103
     });
     
-    console.log(response.data); // Log the response data
-    
     if (response.data.prediction === 1) { // Access prediction from response.data
       toast((t) => (
         <div className="flex items-center">
@@ -110,7 +108,6 @@ const handlePreModel = async () => {
     
     return response.data; // Return the response data
   } catch (error) {
-    console.error("Error in prediction:", error);
     toast.error("Error getting prediction");
     throw error; // Rethrow the error to handle it in handleSubmit
   }
@@ -120,7 +117,6 @@ const handleSubmit = async (e) => {
   e.preventDefault(); // Prevent default form submission
   
   try {
-    console.log('Form submitted:', formData);
     toast.success("Successfully submitted!")
     setTimeout(() => {
       setIsOpen(false)
@@ -135,7 +131,6 @@ const handleSubmit = async (e) => {
 
     
   } catch (error) {
-    console.error("Error in form submission:", error);
     toast.error("Error submitting form");
     // Don't reload if there was an error
   }

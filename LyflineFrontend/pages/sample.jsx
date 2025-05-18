@@ -21,7 +21,6 @@ const DoctorDashboard = () => {
                 toast.success('Welcome, Dr. ' + res.data.first_name, { id: loadingToast });
             } catch (error) {
                 toast.error('Failed to fetch doctor details', { id: loadingToast });
-                console.error("Error fetching name:", error);
             }
         };
         getName();
@@ -30,7 +29,6 @@ const DoctorDashboard = () => {
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const id = useParams();
-    console.log(id.id);
     const [selectedRole, setSelectedRole] = useState('All');
     const [selectedPatient, setSelectedPatient] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -60,7 +58,6 @@ const DoctorDashboard = () => {
             toast.success('Patient data loaded successfully', { id: loadingToast });
         } catch (error) {
             toast.error('Failed to fetch patients', { id: loadingToast });
-            console.error("Error fetching patients:", error);
         } finally {
             setLoading(false);
         }
@@ -73,10 +70,8 @@ const DoctorDashboard = () => {
                 throw new Error('No token found');
             }
             const decoded = jwtDecode(token);
-            console.log(decoded);
             return decoded.hospitalId;
         } catch (error) {
-            console.error('Error getting hospital ID:', error);
             return null;
         }
     };
@@ -91,7 +86,6 @@ const DoctorDashboard = () => {
             window.location.reload();
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
-            console.error("Error attending patient:", error);
         }
     };
 
@@ -105,7 +99,6 @@ const DoctorDashboard = () => {
             window.location.reload();
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
-            console.error("Error updating patient status to stable:", error);
         }
     };
 
@@ -119,7 +112,6 @@ const DoctorDashboard = () => {
             window.location.reload();
         } catch (error) {
             toast.error('Failed to update patient status', { id: loadingToast });
-            console.error("Error updating patient status to critical:", error);
         }
     };
 
@@ -193,7 +185,6 @@ const DoctorDashboard = () => {
         setShowModal(true);
     };
 
-    console.log(patients);
     const filteredPatients = patients.filter(patient => {
         const searchTerm = searchQuery.toLowerCase();
         const matchesSearch = patient.first_name.toLowerCase().includes(searchTerm) ||

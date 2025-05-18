@@ -80,7 +80,6 @@ app.post('/add-patient', async (req, res) => {
       patientId: newPatientId
     });
   } catch (error) {
-    console.error('Error adding patient:', error);
     res.status(500).json({ error: 'Failed to add patient' });
   }
 });
@@ -197,7 +196,6 @@ app.get('/get-patients-for-dashboard', async (req, res) => {
 
     res.json({ patients });
   } catch (error) {
-    console.error('Error fetching patients:', error);
     res.status(500).json({ error: 'Failed to fetch patients' });
   }
 });
@@ -235,9 +233,7 @@ app.post('/add-user', async (req, res) => {
     });
   }
   catch (error) {
-    console.log("error", error)
     res.status(500).json({ error: 'Failed to add user' });
-    
   }
 })
 
@@ -268,9 +264,7 @@ app.post('/add-hospital', async (req, res) => {
     
   }
   catch (error) {
-    console.log(error)
-     console.error('Error adding hospital:', error);
-    res.status(500).json({ error: 'Failed to add hospital' });
+     res.status(500).json({ error: 'Failed to add hospital' });
   }
 })
 app.get('/get-users-for-admin/:id', async (req, res) => {
@@ -292,7 +286,6 @@ app.delete('/delete-user/:userId', async (req, res) => {
     });
   }
   catch (error) {
-    console.log(error);
     res.status(500).json({error:'Failed to delete user'})
   }
 
@@ -309,25 +302,20 @@ app.post('/auth', async (req, res) => {
   const query = 'SELECT password,hospital_id,user_id FROM users where email=$1 AND role=$2'
   try {
     const result = await pool.query(query, [email,role])
-    console.log(result.rows[0].password)
     var token=null
     if (result.rows[0].password == password) {
       token = jwt.sign({ email:email, role: role,hospitalId:result.rows[0].hospital_id }, process.env.SECRET_KEY, {
         expiresIn: '7d',
       });
       res.status(201).json({ token:token,hospitalId:result.rows[0].hospital_id,user_id:result.rows[0].user_id })
-      
     }
     else {
       res.status(401).json({message:"Invalid credentials."})
     }
-    
   }
   catch (error) {
-    console.log(error)
     res.status(500).json({error:"Trouble signing in."})
   }
-  
 })
 app.post('/add-pathology-report', async (req, res) => {
   const {
@@ -393,7 +381,6 @@ app.post('/add-pathology-report', async (req, res) => {
       reportId: newReportId
     });
   } catch (error) {
-    console.error('Error adding pathology report:', error);
     res.status(500).json({ error: 'Failed to add pathology report' });
   }
 });
@@ -511,27 +498,23 @@ ORDER BY p.patient_id, pr.report_date DESC;
 
     res.json({ patients });
   } catch (error) {
-    console.error('Error fetching patients:', error);
     res.status(500).json({ error: 'Failed to fetch patients' });
   }
 });
 app.put("/attend", async (req, res) => {
   const { patient_id,user_id } = req.body;
-  console.log(patient_id)
 
   try {
     const q1 = `SELECT iscritical FROM patients WHERE patient_id = $1 `
     const res1 = await pool.query(q1, [patient_id]);
-    console.log(res1.rows[0])
     if (res1.rows[0].iscritical == 1){
       const query = `UPDATE patients SET iscritical = $2 WHERE patient_id = $1`;
     const result = await pool.query(query, [patient_id, 5 * user_id]); // Renamed res to result
 
     res.status(200).json({ message: "Patient attended successfully." });
-  }// Send success response
+  }
   } catch (error) {
     res.status(500).json({ error: "Failed to attend" });
-    console.log(error)
   }
 });
 app.get("/get-name/:user_id", async (req, res) => {
@@ -551,7 +534,6 @@ app.get("/get-name/:user_id", async (req, res) => {
     
     res.status(200).json(response.rows[0]);
   } catch (error) {
-    console.error("Database error:", error);
     res.status(500).json({ error: "Error getting name" });
   }
 });
@@ -561,7 +543,6 @@ app.post("/predict/heart", async (req, res) => {
     const response = await axios.post(mlEndpoint, req.body);
     res.json(response.data);
   } catch (error) {
-    console.error('Prediction error:', error);
     res.status(500).json({ 
       status: 'error',
       message: 'Failed to get prediction'
@@ -574,7 +555,6 @@ app.post("/predict/chd", async (req, res) => {
     const response = await axios.post(mlEndpoint, req.body);
     res.json(response.data);
   } catch (error) {
-    console.error('Prediction error:', error);
     res.status(500).json({ 
       status: 'error',
       message: 'Failed to get prediction'
@@ -583,7 +563,6 @@ app.post("/predict/chd", async (req, res) => {
 });
 app.put("/critical", async (req, res) => {
   const { patient_id } = req.body;
-  console.log(patient_id)
 
   try {
     const query = `UPDATE patients SET iscritical = 1 WHERE patient_id = $1`;
@@ -592,12 +571,10 @@ app.put("/critical", async (req, res) => {
     res.status(200).json({ message: "Updated patient is critical." }); // Send success response
   } catch (error) {
     res.status(500).json({ error: "Failed to update" });
-    console.log(error)
   }
 });
 app.put("/stable", async (req, res) => {
   const { patient_id } = req.body;
-  console.log(patient_id)
 
   try {
     const query = `UPDATE patients SET iscritical = 0 WHERE patient_id = $1`;
@@ -606,6 +583,5 @@ app.put("/stable", async (req, res) => {
     res.status(200).json({ message: "Updated patient is critical." }); // Send success response
   } catch (error) {
     res.status(500).json({ error: "Failed to update" });
-    console.log(error)
   }
 });

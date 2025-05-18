@@ -26,7 +26,6 @@ const Auth = () => {
       return response.data.hospitalId;
     } catch (error) {
       toast.error('Authentication failed. Please check your credentials.');
-      console.error('Authentication failed', error);
       throw error;
     }
   };
@@ -55,13 +54,20 @@ const Auth = () => {
       setTimeout(() => { navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`)},1000);
     } catch (error) {
       toast.error('An error occurred. Please try again.');
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const roles = ['Admin', 'Pathologist', 'Doctor', 'Receptionist'];
+
+  // Sample credentials mapped by role
+  const sampleCredentials = {
+    Doctor: { email: 'michael.brown@example.com', password: 'password1' },
+    Pathologist: { email: 'elizabeth.jackson@example.com', password: 'password1' },
+    Receptionist: { email: 'nancy.hill@example.com', password: 'password1' },
+    Admin: { email: 'info@centralcityhospital.com', password: 'password1' }
+  };
 
   return (
     <>
@@ -192,6 +198,15 @@ const Auth = () => {
                   )}
                 </button>
               </form>
+              
+              {/* Test Credentials Section */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <p className="text-xs text-gray-500 font-medium">Test Credentials:</p>
+                <div className="mt-2 text-xs text-gray-400">
+                  <p>Email: {sampleCredentials[role].email}</p>
+                  <p>Password: {sampleCredentials[role].password}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

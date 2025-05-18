@@ -137,7 +137,6 @@ const RegisterHospital = () => {
       return hospitalId;
 
     } catch (error) {
-      console.error('Registration error:', error);
       throw error; // Re-throw to be handled by the calling function
     }
   };
