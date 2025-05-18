@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../utils/authHelper';
+import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../src/utils/authHelper';
 import {jwtDecode} from 'jwt-decode';
 
 const DoctorDashboard = () => {

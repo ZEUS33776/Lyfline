@@ -7,7 +7,7 @@ import axios from 'axios';
 import HealthFormModal from "../src/components/HealthModal"
 import {toast,Toaster} from 'react-hot-toast';
 import PathologyReportForm from '../src/components/PathologyModal';
-import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../utils/authHelper';
+import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../src/utils/authHelper';
 
 const ReceptionistDashboard = () => {
   
