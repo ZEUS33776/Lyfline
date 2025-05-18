@@ -3,6 +3,7 @@ import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Toaster, toast } from 'react-hot-toast';
 import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,7 @@ const Auth = () => {
   const [role, setRole] = useState('Admin');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleAuth = async () => {
     try {
@@ -19,13 +21,14 @@ const Auth = () => {
         password,
         role
       });
-      // Store user data in localStorage for persistence
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('hospitalId', response.data.hospitalId);
-      localStorage.setItem('user_id', response.data.user_id);
       
-      // Also store role for more robust session persistence
-      localStorage.setItem('userRole', role);
+      // Use auth context login
+      login({
+        token: response.data.token,
+        hospitalId: response.data.hospitalId,
+        userId: response.data.user_id,
+        role
+      });
       
       toast.success('Login successful!');
       return response.data.hospitalId;
@@ -40,22 +43,8 @@ const Auth = () => {
     setIsLoading(true);
     try {
       const hospitalId = await handleAuth();
-      const token = localStorage.getItem('token');
-
-      if (!token) {
-        throw new Error("Invalid token");
-      }
-
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-
-      if (decodedToken.exp < currentTime) {
-        localStorage.removeItem('token');
-        toast.error('Session expired. Please log in again.');
-        throw new Error('Session expired');
-      }
-      toast.success("Credentials verified!")
-
+      
+      toast.success("Credentials verified!");
       setTimeout(() => { navigate(`/${role.toLowerCase()}-dashboard/${hospitalId}`)},1000);
     } catch (error) {
       toast.error('An error occurred. Please try again.');

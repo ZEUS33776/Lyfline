@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from "../src/components/DasboardNavbar";
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
-import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../src/utils/authHelper';
+import { useAuth } from '../src/context/AuthContext';
 import {jwtDecode} from 'jwt-decode';
 
 const DoctorDashboard = () => {
@@ -32,13 +32,10 @@ const DoctorDashboard = () => {
     const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [patients,setPatients]=useState([])
+  const { logout, user } = useAuth();
+  
   const handleSignOut = () => {
-    // Clear all auth data
-    localStorage.removeItem('token');
-    localStorage.removeItem('hospitalId');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('userRole');
-    navigate("/signin");
+    logout();
   }
   // Hospital ID validation will be handled in useEffect instead of on render
 // This prevents automatic logout on component mount

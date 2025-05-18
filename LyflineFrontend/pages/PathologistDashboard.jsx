@@ -7,55 +7,43 @@ import axios from 'axios';
 import HealthFormModal from "../src/components/HealthModal"
 import {toast,Toaster} from 'react-hot-toast';
 import PathologyReportForm from '../src/components/PathologyModal';
-import { isAuthenticated, hasHospitalAccess, getHospitalId, getUserId } from '../src/utils/authHelper';
+import { useAuth } from '../src/context/AuthContext';
 
 const ReceptionistDashboard = () => {
-  
-  const navigate=useNavigate()
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const id = useParams()
+  const id = useParams();
   const [selectedRole, setSelectedRole] = useState('All');
   const [selectedPatient, setSelectedPatient] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedReport, setSelectedReport] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [patients,setPatients]=useState([])
+  const [patients, setPatients] = useState([]);
+  const [name, setName] = useState(""); 
+  
+  // Use auth context instead of directly manipulating localStorage
+  const { logout, user } = useAuth();
+  
   const handleSignOut = () => {
-    // Clear all auth data
-    localStorage.removeItem('token');
-    localStorage.removeItem('hospitalId');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('userRole');
-    navigate("/signin");
-  }
-  // We'll handle hospital ID validation in useEffect instead of doing it on render
-// This prevents automatic logout on component mount
-  const [name,setName]=useState("") 
+    logout();
+  };
+  
   useEffect(() => {
     const getName = async () => {
-      const user_id = localStorage.getItem("user_id")
-      // alert(user_id)
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
-      setName(res.data.first_name )
-      
-    }
-    getName()
-      
-    },[])
-  // Mock data updated to match schema
-  useEffect(() => {
-    const getPatients = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-dashboard`);
-        setPatients(response.data.patients);
+        const user_id = user?.userId;
+        if (!user_id) return;
+        
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-name/${user_id}`);
+        setName(res.data.first_name);
       } catch (error) {
-        toast.error("Error fetching patients");
+        toast.error("Error fetching user details");
       }
     };
-    getPatients()
-    
-  },[])
+    getName();
+  }, [user]);
+
   const getPatients = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-dashboard`);
@@ -64,81 +52,28 @@ const ReceptionistDashboard = () => {
       toast.error("Error fetching patients");
     }
   };
-  // Using auth helper for more consistent token handling
-  const allowedHospital = getHospitalId();
-  const checkHospitalAccess = () => {
-    const hospitalId = getHospitalId();
-    if (!hospitalId) {
-      toast.error('Authentication required');
-      navigate("/signin");
-      return false;
-    }
-
-    if (hospitalId !== parseInt(id.id)) {
-      toast.error('Unauthorized access');
-      // Don't remove token on hospital mismatch - just redirect
-      navigate("/signin");
-      return false;
-    }
-
-    return true;
-  };
+  
   const handleSubmit = (formData) => {
-    // Handle the form submission
     console.log(formData);
     setIsModalOpen(false);
   };
-  const checkAuth = () => {
-    if (!isAuthenticated()) {
-      toast.error('Session expired. Please log in again.');
-      navigate("/signin");
-      return false;
-    }
-    return true;
-  };
-  // useEffect(() => {
-  //   const init = async () => {
-  //     if (checkAuth() && checkHospitalAccess()) {
-  //       await getPatients();
-  //     }
-      
-      
-  //   };
-  //   init();
-  // }, [id]);
   
   useEffect(() => {
     const fetchData = async () => {
-      // First verify we have a valid token
-      if (!isAuthenticated()) {
-        // Don't clear token here, just redirect
-        navigate('/signin');
-        return;
-      }
-      
-      // Check if the hospital ID in the URL matches the one in localStorage
-      if (hasHospitalAccess(id.id)) {
-        // If authenticated and has hospital access, fetch data
-        try {
-          await getPatients();
-        } catch (error) {
-          console.error("Error fetching data:", error);
-          toast.error("Error loading dashboard");
-        }
-      } else {
-        // If the hospital IDs don't match, redirect but don't clear localStorage
-        // This prevents session loss on hospital mismatch
-        navigate('/signin');
+      try {
+        await getPatients();
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        toast.error("Error loading dashboard");
       }
     };
     
     // Custom event handler for refreshing data without page reload
-    const handleRefreshData = (event) => {
-      // Only refresh data, no auth check needed for specific event-triggered refresh
+    const handleRefreshData = () => {
       getPatients();
     };
     
-    // Add event listeners for all our custom events
+    // Add event listeners for custom events
     window.addEventListener('patientStatusUpdated', handleRefreshData);
     window.addEventListener('pathologyReportAdded', handleRefreshData);
     
@@ -149,14 +84,13 @@ const ReceptionistDashboard = () => {
       window.removeEventListener('patientStatusUpdated', handleRefreshData);
       window.removeEventListener('pathologyReportAdded', handleRefreshData);
     };
-  }, [id.id, navigate]);
-  
+  }, [id.id]);
 
   const openPatientProfile = (patient) => {
     setSelectedPatient(patient);
     setShowModal(true);
   };
-console.log(patients)
+
   const filteredPatients = patients.filter(patient => {
     const searchTerm = searchQuery.toLowerCase();
     const matchesSearch = patient.first_name.toLowerCase().includes(searchTerm) ||

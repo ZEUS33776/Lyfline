@@ -1,24 +1,33 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Navbar = () => {
+const Navbar = ({ handleSignOut }) => {
     const navigate = useNavigate();
-    // const handleSignInClick = () => {
-    //     navigate('/')
-    // }
-    const handleSignOut = () => {
-        localStorage.removeItem('token')
-        navigate("/signin")
-      }
+    
+    // Use the handleSignOut prop instead of directly manipulating localStorage
+    // This way the parent component can control the logout behavior
+    const onSignOut = () => {
+        if (handleSignOut && typeof handleSignOut === 'function') {
+            handleSignOut();
+        } else {
+            // Fallback only if prop is not provided
+            navigate("/signin");
+        }
+    };
+    
     return (
-        <div className="flex items-center justify-between sticky top-0 bg-white shadow-md  pb-4">
+        <div className="flex items-center justify-between sticky top-0 bg-white shadow-md pb-4">
             <div className="flex items-center gap-2 bg-white">
                 <img width="48" className="ml-12 mt-8" height="48" src="https://img.icons8.com/fluency/48/heart-with-pulse--v1.png" alt="heart-with-pulse--v1" />
                 <h3 className="font-ubuntu mt-8 text-2xl font-bold text-slate-gray">Lyfline</h3>
             </div>
             
             <div className="flex items-center mr-12">
-                <button type="button" onClick={handleSignOut} className="bg-gradient-to-r from-red-400 via-red-500 to-red-600 mt-4 align-middle text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <button 
+                    type="button" 
+                    onClick={onSignOut} 
+                    className="bg-gradient-to-r from-red-400 via-red-500 to-red-600 mt-4 align-middle text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
                    Sign out
                     <svg className="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
                         <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>

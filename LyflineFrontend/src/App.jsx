@@ -17,40 +17,70 @@ import UserManagementDashboard from "../pages/AdminDashboard"
 import ReceptionistDashboard from "../pages/ReceptionistDashboard"
 import PathologistDashboard from '../pages/PathologistDashboard';
 import DoctorDashboard from '../pages/DoctorDashboard';
-import config from './config';
+import ProtectedRoute from './components/ProtectedRoute';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
- 
-  
-  
-
   return (
-    <Routes>
-      <Route path="/" element={<div>
-        <Navbar />
-      <Banner />
-      <Proceed />
-      <About />
-      
-      
-      
-      </div>} /> 
-      <Route path='/signin' element={<div>
+    <>
+      <Toaster position="top-center" />
+      <Routes>
+        {/* Public routes */}
+        <Route 
+          path="/" 
+          element={
+            <div>
+              <Navbar />
+              <Banner />
+              <Proceed />
+              <About />
+            </div>
+          } 
+        /> 
+        <Route 
+          path='/signin' 
+          element={<Auth />} 
+        />
+        <Route 
+          path="/register" 
+          element={<RegisterHospital />} 
+        />
         
-        <Auth />
-      </div>} />
-      <Route path="/register" element={<div><RegisterHospital /></div>} />
-      <Route path="/admin-dashboard/:id" element={<UserManagementDashboard />} />
-      <Route path="/receptionist-dashboard/:id" element={<ReceptionistDashboard />} />
-      <Route path="/pathologist-dashboard/:id" element={<PathologistDashboard />} />
-        <Route path="/doctor-dashboard/:id" element={<DoctorDashboard />}/>
-      
+        {/* Protected routes */}
+        <Route 
+          path="/admin-dashboard/:id" 
+          element={
+            <ProtectedRoute requiredRole="Admin">
+              <UserManagementDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/receptionist-dashboard/:id" 
+          element={
+            <ProtectedRoute requiredRole="Receptionist">
+              <ReceptionistDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/pathologist-dashboard/:id" 
+          element={
+            <ProtectedRoute requiredRole="Pathologist">
+              <PathologistDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/doctor-dashboard/:id" 
+          element={
+            <ProtectedRoute requiredRole="Doctor">
+              <DoctorDashboard />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-
-    // <>
-      
-      
-    //   </>
+    </>
   )
 }
 
