@@ -9,18 +9,19 @@ export default defineConfig({
     historyApiFallback: true,
   },
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: undefined,
       },
     },
-    outDir: 'dist',
-    assetsDir: 'assets',
-    emptyOutDir: true,
   },
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
     },
   },
+  base: './',
 })
