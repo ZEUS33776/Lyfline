@@ -32,7 +32,7 @@ const DoctorDashboard = () => {
     const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [patients,setPatients]=useState([])
-  const { logout, user } = useAuth();
+  const { logout, user, isAuthenticated, hasHospitalAccess } = useAuth();
   
   const handleSignOut = () => {
     logout();
