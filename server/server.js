@@ -544,23 +544,89 @@ app.post("/predict/heart", async (req, res) => {
     const mlEndpoint = `${config.mlService.url}${config.mlService.endpoints.predictHeart}`;
     console.log('🔗 [Heart Prediction] ML endpoint:', mlEndpoint);
     
-    const response = await axios.post(mlEndpoint, req.body);
+    // Try the ML service first
+    try {
+      const response = await axios.post(mlEndpoint, req.body, { timeout: 5000 });
+      console.log('✅ [Heart Prediction] ML Service Success:', response.data);
+      return res.json(response.data);
+    } catch (mlError) {
+      console.warn('⚠️ [Heart Prediction] ML Service unavailable, using fallback prediction');
+      
+      // Fallback: Simple rule-based prediction
+      const { age, sex, cp, trtbps, chol, fbs, restecg, thalachh, exng, oldpeak, slp, caa, thall } = req.body;
+      
+      let riskScore = 0;
+      
+      // Age factor (higher age = higher risk)
+      if (age > 65) riskScore += 3;
+      else if (age > 55) riskScore += 2;
+      else if (age > 45) riskScore += 1;
+      
+      // Sex factor (male = higher risk)
+      if (sex === 1) riskScore += 1;
+      
+      // Chest pain type (higher = more concerning)
+      if (cp >= 3) riskScore += 2;
+      else if (cp >= 2) riskScore += 1;
+      
+      // Blood pressure (hypertension)
+      if (trtbps > 140) riskScore += 2;
+      else if (trtbps > 120) riskScore += 1;
+      
+      // Cholesterol
+      if (chol > 240) riskScore += 2;
+      else if (chol > 200) riskScore += 1;
+      
+      // Fasting blood sugar
+      if (fbs === 1) riskScore += 1;
+      
+      // Max heart rate (lower = concerning for age)
+      const expectedMaxHR = 220 - age;
+      if (thalachh < expectedMaxHR * 0.7) riskScore += 2;
+      else if (thalachh < expectedMaxHR * 0.8) riskScore += 1;
+      
+      // Exercise induced angina
+      if (exng === 1) riskScore += 2;
+      
+      // Old peak (ST depression)
+      if (oldpeak > 2) riskScore += 2;
+      else if (oldpeak > 1) riskScore += 1;
+      
+      // Major vessels
+      if (caa >= 2) riskScore += 2;
+      else if (caa >= 1) riskScore += 1;
+      
+      // Thalassemia
+      if (thall === 3) riskScore += 2; // Reversible defect
+      else if (thall === 2) riskScore += 1; // Fixed defect
+      
+      // Calculate prediction (risk if score >= 7)
+      const prediction = riskScore >= 7 ? 1 : 0;
+      const probability = Math.min(riskScore / 15, 1); // Normalize to 0-1
+      
+      const fallbackResult = {
+        prediction: prediction,
+        probability: probability,
+        status: 'success',
+        fallback: true,
+        riskScore: riskScore,
+        message: 'Prediction generated using fallback rule-based system'
+      };
+      
+      console.log('✅ [Heart Prediction] Fallback Success:', fallbackResult);
+      return res.json(fallbackResult);
+    }
     
-    console.log('✅ [Heart Prediction] Success:', response.data);
-    res.json(response.data);
   } catch (error) {
-    console.error('❌ [Heart Prediction] Error details:');
+    console.error('❌ [Heart Prediction] Complete failure:');
     console.error('Request body:', JSON.stringify(req.body, null, 2));
-    console.error('ML endpoint:', `${config.mlService.url}${config.mlService.endpoints.predictHeart}`);
     console.error('Error message:', error.message);
-    console.error('Error response:', error.response?.data);
-    console.error('Error status:', error.response?.status);
+    console.error('Error stack:', error.stack);
     
     res.status(500).json({ 
       status: 'error',
-      message: 'Failed to get prediction',
-      details: error.response?.data || error.message,
-      endpoint: `${config.mlService.url}${config.mlService.endpoints.predictHeart}`
+      message: 'Failed to get prediction - both ML service and fallback failed',
+      details: error.message
     });
   }
 });
