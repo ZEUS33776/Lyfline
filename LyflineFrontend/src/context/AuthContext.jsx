@@ -50,98 +50,79 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   
+  // Check if token is valid
+  const isTokenValid = useCallback((token) => {
+    if (!token) return false;
+    try {
+      const decoded = jwtDecode(token);
+      return decoded.exp * 1000 > Date.now();
+    } catch (error) {
+      return false;
+    }
+  }, []);
+  
   // Clear all auth data
   const clearAuthData = useCallback(() => {
+    setUser(null);
     safeStorage.remove('token');
     safeStorage.remove('hospitalId');
     safeStorage.remove('user_id');
     safeStorage.remove('userRole');
-    setUser(null);
   }, []);
-  
-  // Check if token is valid
-  const isTokenValid = useCallback((token) => {
-    if (!token) return false;
-    
-    try {
-      const decoded = jwtDecode(token);
-      const currentTime = Date.now() / 1000;
-      
-      // Some JWTs might not have an expiration claim
-      if (decoded.exp && decoded.exp < currentTime) {
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Token validation error:', error);
-      return false;
-    }
-  }, []);
-  
-  // Load user from localStorage
-  const loadUserFromStorage = useCallback(() => {
-    try {
-      const token = safeStorage.get('token');
-      if (!token || !isTokenValid(token)) {
-        clearAuthData();
-        return null;
-      }
-      
-      const userId = safeStorage.get('user_id');
-      const hospitalId = safeStorage.get('hospitalId');
-      const userRole = safeStorage.get('userRole');
-      
-      if (!userId || !hospitalId || !userRole) {
-        clearAuthData();
-        return null;
-      }
-      
-      return {
-        userId,
-        hospitalId,
-        role: userRole,
-        token
-      };
-    } catch (error) {
-      console.error('Error loading user from storage:', error);
-      clearAuthData();
-      return null;
-    }
-  }, [clearAuthData, isTokenValid]);
   
   // Initialize auth state
   useEffect(() => {
-    try {
-      const userData = loadUserFromStorage();
-      setUser(userData);
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      clearAuthData();
-    } finally {
-      setLoading(false);
-    }
-    
-    // Listen for storage events (for multi-tab support)
-    const handleStorageChange = (e) => {
-      if (['token', 'user_id', 'hospitalId', 'userRole'].includes(e.key)) {
-        const userData = loadUserFromStorage();
-        setUser(userData);
+    const initializeAuth = () => {
+      try {
+        const token = safeStorage.get('token');
+        if (!token || !isTokenValid(token)) {
+          clearAuthData();
+          return;
+        }
+        
+        const hospitalId = safeStorage.get('hospitalId');
+        const userId = safeStorage.get('user_id');
+        const role = safeStorage.get('userRole');
+        
+        if (!hospitalId || !userId || !role) {
+          clearAuthData();
+          return;
+        }
+        
+        setUser({
+          userId,
+          hospitalId,
+          role,
+          token
+        });
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        clearAuthData();
+      } finally {
+        setLoading(false);
       }
     };
     
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [clearAuthData, loadUserFromStorage]);
+    initializeAuth();
+  }, [clearAuthData, isTokenValid]);
+  
+  // Check if user is authenticated
+  const isAuthenticated = useCallback(() => {
+    const token = safeStorage.get('token');
+    return isTokenValid(token);
+  }, [isTokenValid]);
+  
+  // Check if user has access to a hospital
+  const hasHospitalAccess = useCallback((hospitalId) => {
+    if (!user) return false;
+    return user.hospitalId === hospitalId;
+  }, [user]);
   
   // Login function
   const login = useCallback(async (userData) => {
-    if (!userData || !userData.token) {
-      console.error('Invalid user data for login', userData);
-      return false;
-    }
-    
     try {
+      setLoading(true);
+      
       // Clear existing data first
       clearAuthData();
       
@@ -152,16 +133,12 @@ export const AuthProvider = ({ children }) => {
       const roleSet = safeStorage.set('userRole', userData.role);
       
       if (!tokenSet || !hospitalSet || !userIdSet || !roleSet) {
-        console.error('Failed to store auth data');
-        clearAuthData();
-        return false;
+        throw new Error('Failed to store auth data');
       }
       
       // Verify the token is valid
       if (!isTokenValid(userData.token)) {
-        console.error('Invalid token provided');
-        clearAuthData();
-        return false;
+        throw new Error('Invalid token provided');
       }
       
       // Set user in state
@@ -173,20 +150,13 @@ export const AuthProvider = ({ children }) => {
       };
       
       setUser(newUser);
-      
-      // Double verify the data was set correctly
-      const storedToken = safeStorage.get('token');
-      if (storedToken !== userData.token) {
-        console.error('Token verification failed after setting');
-        clearAuthData();
-        return false;
-      }
-      
       return true;
     } catch (error) {
       console.error('Login error:', error);
       clearAuthData();
       return false;
+    } finally {
+      setLoading(false);
     }
   }, [clearAuthData, isTokenValid]);
   
@@ -195,34 +165,6 @@ export const AuthProvider = ({ children }) => {
     clearAuthData();
     navigate('/signin');
   }, [clearAuthData, navigate]);
-  
-  // Check if user is authenticated
-  const isAuthenticated = useCallback(() => {
-    // First check if we have user data in state
-    if (user && user.token && isTokenValid(user.token)) {
-      return true;
-    }
-    
-    // If not, try to load from storage
-    const freshUser = loadUserFromStorage();
-    if (freshUser) {
-      // Update user state if found in storage
-      setUser(freshUser);
-      return true;
-    }
-    
-    return false;
-  }, [user, isTokenValid, loadUserFromStorage]);
-  
-  // Check if user has access to a specific hospital
-  const hasHospitalAccess = useCallback((hospitalId) => {
-    if (!isAuthenticated()) return false;
-    
-    const currentUser = user || loadUserFromStorage();
-    if (!currentUser || !currentUser.hospitalId) return false;
-    
-    return parseInt(currentUser.hospitalId) === parseInt(hospitalId);
-  }, [isAuthenticated, user, loadUserFromStorage]);
   
   // Auth context value
   const contextValue = {
