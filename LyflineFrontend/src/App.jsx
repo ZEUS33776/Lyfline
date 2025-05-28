@@ -20,6 +20,28 @@ import DoctorDashboard from '../pages/DoctorDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
+// Simple test component
+const TestPage = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold text-green-600 mb-4">✅ Routing Works!</h1>
+      <p className="text-gray-600 mb-4">This page confirms that client-side routing is working correctly.</p>
+      <a href="/signin" className="text-blue-500 hover:underline">Go to Sign In</a>
+    </div>
+  </div>
+);
+
+// 404 Page component
+const NotFound = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+      <h1 className="text-2xl font-bold text-red-600 mb-4">404 - Page Not Found</h1>
+      <p className="text-gray-600 mb-4">The page you're looking for doesn't exist.</p>
+      <a href="/" className="text-blue-500 hover:underline">Go Home</a>
+    </div>
+  </div>
+);
+
 function App() {
   return (
     <>
@@ -36,7 +58,11 @@ function App() {
               <About />
             </div>
           } 
-        /> 
+        />
+        <Route 
+          path="/test" 
+          element={<TestPage />} 
+        />
         <Route 
           path='/signin' 
           element={<Auth />} 
@@ -79,6 +105,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
+        {/* Catch-all route for 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </>
   )
