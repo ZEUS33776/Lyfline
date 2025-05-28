@@ -32,7 +32,7 @@ const DoctorDashboard = () => {
     const [selectedReport, setSelectedReport] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [patients,setPatients]=useState([])
-  const { logout, user } = useAuth();
+  const { logout, user, isAuthenticated, hasHospitalAccess } = useAuth();
   
   const handleSignOut = () => {
     logout();
@@ -44,6 +44,7 @@ const DoctorDashboard = () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/get-patients-for-doctor`);
       setPatients(response.data.patients);
+      console.log('Fetched Patients:', response.data.patients);
       // toast.success("Patients fetched successfully!")
       
     } catch (error) {
@@ -158,16 +159,12 @@ const DoctorDashboard = () => {
   
   useEffect(() => {
     const fetchData = async () => {
-      // First verify we have a valid token
       if (!isAuthenticated()) {
-        // Don't clear token here, just redirect
         navigate('/signin');
         return;
       }
       
-      // Check if the hospital ID in the URL matches the one in localStorage
       if (hasHospitalAccess(id.id)) {
-        // If authenticated and has hospital access, fetch data
         try {
           await getPatients();
         } catch (error) {
@@ -175,30 +172,24 @@ const DoctorDashboard = () => {
           toast.error("Error loading dashboard");
         }
       } else {
-        // If the hospital IDs don't match, redirect but don't clear localStorage
-        // This prevents session loss on hospital mismatch
         navigate('/signin');
       }
     };
     
-    // Custom event handler for refreshing data without page reload
     const handleRefreshData = (event) => {
-      // Only refresh data, no auth check needed for specific event-triggered refresh
       getPatients();
     };
     
-    // Add event listeners for all our custom events
     window.addEventListener('patientStatusUpdated', handleRefreshData);
     window.addEventListener('pathologyReportAdded', handleRefreshData);
     
     fetchData();
     
-    // Clean up event listeners when component unmounts
     return () => {
       window.removeEventListener('patientStatusUpdated', handleRefreshData);
       window.removeEventListener('pathologyReportAdded', handleRefreshData);
     };
-  }, [id.id, navigate]);
+  }, [id.id, navigate, isAuthenticated, hasHospitalAccess]);
   
 
   const openPatientProfile = (patient) => {
