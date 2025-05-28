@@ -16,7 +16,9 @@ export default defineConfig({
       output: {
         manualChunks: undefined,
       },
+      external: [],
     },
+    copyPublicDir: true,
   },
   resolve: {
     alias: {
@@ -24,4 +26,5 @@ export default defineConfig({
     },
   },
   base: './',
+  publicDir: 'public',
 })
