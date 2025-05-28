@@ -8,7 +8,9 @@
     "start": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "validate": "node scripts/build-validate.js",
+    "build:validate": "npm run build && npm run validate"
   },
   "dependencies": {
     "@popperjs/core": "^2.11.8",
