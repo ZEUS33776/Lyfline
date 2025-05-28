@@ -1,0 +1,5 @@
+
+curl -X POST https://lyfline-backend.onrender.com/auth \
+
+  -H "Content-Type: application/json" \
+  -d '{"email":"elizabeth.jackson@example.com","password":"password1","role":"Pathologist"}'
