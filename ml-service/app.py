@@ -30,41 +30,80 @@ chd_imputer = joblib.load(CHD_IMPUTER_PATH)
 def predict_heart():
     try:
         data = request.json
+        print(f"🩺 [Heart Prediction] Received data: {data}")
         
-        # Create feature array in correct order
-        features = np.array([
-            float(data['age']),          # age
-            float(data['sex']),          # sex
-            float(data['cp']),           # chest pain type
-            float(data['trtbps']),       # resting blood pressure
-            float(data['chol']),         # cholesterol
-            float(data['fbs']),          # fasting blood sugar
-            float(data['restecg']),      # resting ECG
-            float(data['thalachh']),     # maximum heart rate
-            float(data['exng']),         # exercise induced angina
-            float(data['oldpeak']),      # ST depression
-            float(data['slp']),          # slope
-            float(data['caa']),          # number of major vessels
-            float(data['thall'])         # thalassemia
-        ]).reshape(1, -1)
+        # Validate required fields
+        required_fields = ['age', 'sex', 'cp', 'trtbps', 'chol', 'fbs', 'restecg', 'thalachh', 'exng', 'oldpeak', 'slp', 'caa', 'thall']
+        missing_fields = [field for field in required_fields if field not in data or data[field] is None]
+        
+        if missing_fields:
+            error_msg = f"Missing required fields: {missing_fields}"
+            print(f"❌ [Heart Prediction] {error_msg}")
+            return jsonify({
+                'error': error_msg,
+                'required_fields': required_fields,
+                'received_data': data,
+                'status': 'error'
+            }), 400
+        
+        # Create feature array in correct order with validation
+        try:
+            features = np.array([
+                float(data['age']),          # age
+                float(data['sex']),          # sex
+                float(data['cp']),           # chest pain type
+                float(data['trtbps']),       # resting blood pressure
+                float(data['chol']),         # cholesterol
+                float(data['fbs']),          # fasting blood sugar
+                float(data['restecg']),      # resting ECG
+                float(data['thalachh']),     # maximum heart rate
+                float(data['exng']),         # exercise induced angina
+                float(data['oldpeak']),      # ST depression
+                float(data['slp']),          # slope
+                float(data['caa']),          # number of major vessels
+                float(data['thall'])         # thalassemia
+            ]).reshape(1, -1)
+            
+            print(f"✅ [Heart Prediction] Features array shape: {features.shape}")
+            print(f"✅ [Heart Prediction] Features values: {features}")
+            
+        except (ValueError, TypeError) as e:
+            error_msg = f"Invalid data types in input: {str(e)}"
+            print(f"❌ [Heart Prediction] {error_msg}")
+            return jsonify({
+                'error': error_msg,
+                'received_data': data,
+                'status': 'error'
+            }), 400
         
         # Handle missing values and scale
         features = heart_imputer.transform(features)
         features_scaled = heart_scaler.transform(features)
         
+        print(f"✅ [Heart Prediction] Features after preprocessing: {features_scaled}")
+        
         # Make prediction
         prediction = heart_classifier.predict(features_scaled)
         prediction_proba = heart_classifier.predict_proba(features_scaled)
         
-        return jsonify({
+        result = {
             'prediction': int(prediction[0]),  # 0: No risk, 1: Risk
             'probability': float(prediction_proba[0][1]),
             'status': 'success'
-        })
+        }
+        
+        print(f"🎯 [Heart Prediction] Result: {result}")
+        return jsonify(result)
         
     except Exception as e:
+        error_msg = f"Unexpected error in heart prediction: {str(e)}"
+        print(f"❌ [Heart Prediction] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        
         return jsonify({
-            'error': str(e),
+            'error': error_msg,
+            'received_data': request.json if request.json else 'No JSON data',
             'status': 'error'
         }), 500
 

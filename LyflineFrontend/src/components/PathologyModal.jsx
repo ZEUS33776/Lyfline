@@ -52,22 +52,26 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
     );
     
     try {
-      // First, get the prediction
-      const predictionRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/predict/heart`, {
-        "age": age,
-        "sex": sex,
-        "cp": formData.chest_pain_type,
-        "trtbps": formData.resting_blood_pressure,
-        "chol": formData.serum_cholestoral,
-        "fbs": formData.fasting_blood_sugar,
-        "restecg": formData.resting_ecg_result,
-        "thalachh": formData.max_heart_rate,
-        "exng": formData.exercise_induced_angina,
-        "oldpeak": formData.oldpeak,
-        "slp": formData.slope,
-        "caa": formData.chest_pain_type,
-        "thall": formData.thal
-      });
+      // First, get the prediction with proper data mapping
+      const predictionData = {
+        "age": age || 0,
+        "sex": sex || 0,
+        "cp": parseInt(formData.chest_pain_type) || 0,
+        "trtbps": parseFloat(formData.resting_blood_pressure) || 120,
+        "chol": parseFloat(formData.serum_cholestoral) || 200,
+        "fbs": formData.fasting_blood_sugar ? 1 : 0,
+        "restecg": parseInt(formData.resting_ecg_result) || 0,
+        "thalachh": parseFloat(formData.max_heart_rate) || 150,
+        "exng": formData.exercise_induced_angina ? 1 : 0,
+        "oldpeak": parseFloat(formData.oldpeak) || 0,
+        "slp": parseInt(formData.slope) || 1,
+        "caa": parseInt(formData.major_vessels) || 0,
+        "thall": parseInt(formData.thal) || 1
+      };
+
+      console.log('Sending prediction data:', predictionData);
+      
+      const predictionRes = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/predict/heart`, predictionData);
 
       // Update is_critical based on prediction
       if (predictionRes.data.prediction === 1) {
@@ -93,7 +97,8 @@ const PathologyReportForm = ({ onClose, onSubmit, age, sex, pid, fname, lname })
       window.dispatchEvent(refreshEvent);
       
     } catch (error) {
-      toast.error("Failed to submit report. Please try again.");
+      console.error('Error details:', error.response?.data || error.message);
+      toast.error(`Failed to submit report: ${error.response?.data?.error || error.message}`);
     }
   };
 

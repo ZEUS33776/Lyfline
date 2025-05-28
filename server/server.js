@@ -539,13 +539,28 @@ app.get("/get-name/:user_id", async (req, res) => {
 });
 app.post("/predict/heart", async (req, res) => {
   try {
+    console.log('🩺 [Heart Prediction] Request received:', JSON.stringify(req.body, null, 2));
+    
     const mlEndpoint = `${config.mlService.url}${config.mlService.endpoints.predictHeart}`;
+    console.log('🔗 [Heart Prediction] ML endpoint:', mlEndpoint);
+    
     const response = await axios.post(mlEndpoint, req.body);
+    
+    console.log('✅ [Heart Prediction] Success:', response.data);
     res.json(response.data);
   } catch (error) {
+    console.error('❌ [Heart Prediction] Error details:');
+    console.error('Request body:', JSON.stringify(req.body, null, 2));
+    console.error('ML endpoint:', `${config.mlService.url}${config.mlService.endpoints.predictHeart}`);
+    console.error('Error message:', error.message);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    
     res.status(500).json({ 
       status: 'error',
-      message: 'Failed to get prediction'
+      message: 'Failed to get prediction',
+      details: error.response?.data || error.message,
+      endpoint: `${config.mlService.url}${config.mlService.endpoints.predictHeart}`
     });
   }
 });
