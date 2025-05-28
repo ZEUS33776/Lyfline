@@ -2,8 +2,10 @@ services:
   - type: static_site
     name: lyfline-frontend
     env: node
-    buildCommand: npm install && npm run build
-    publishDir: ./dist
+    # The build command is now prefixed with 'cd LyflineFrontend &&'
+    buildCommand: cd LyflineFrontend && npm install && npm run build
+    # The publish directory is now relative to the repository root
+    publishDir: ./LyflineFrontend/dist
     routes:
       - type: rewrite
         source: "/*"
